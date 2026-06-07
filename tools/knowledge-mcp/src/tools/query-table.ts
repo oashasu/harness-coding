@@ -1,12 +1,16 @@
 import { z } from 'zod';
 import Database from 'better-sqlite3';
-import { queryTable } from '../db/queries.js';
+import { queryTable, TemporalFilter } from '../db/queries.js';
 
 export const queryTableSchema = {
-  table_name: z.string().describe('表名，如 t_order')
+  table_name: z.string().describe('表名，如 t_order'),
+  temporal_mode: z.enum(['current', 'snapshot', 'all']).optional().default('current'),
 };
 
-export function queryTableHandler(db: Database.Database, args: { table_name: string }) {
+export function queryTableHandler(db: Database.Database, args: {
+  table_name: string;
+  temporal_mode?: string;
+}) {
   const result = queryTable(db, args.table_name);
   if (!result) {
     return { content: [{ type: 'text' as const, text: JSON.stringify({ error: 'table_not_found', table_name: args.table_name }) }] };
