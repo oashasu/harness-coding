@@ -106,9 +106,46 @@ bash scripts/tier0/check-compile.sh /path/to/project
 echo '{"tier":1,"check":"sql","passed":true,"findings":[]}' | python3 scripts/common/report-merger.py
 ```
 
+## Enhancements (v2.1 — harness-enhance-v1)
+
+Six improvements integrated from Harness research evaluation:
+
+| ID | Feature | Description |
+|----|---------|-------------|
+| E-01 | Bi-temporal Knowledge | `valid_from`/`valid_to` fields for time-windowed knowledge validity |
+| E-02 | Declarative Gates | YAML-defined gates in `.harness/gates/declarative/` |
+| E-03 | Query Scope Constraints | Domain/task-scoped queries with `max_results` limits |
+| E-04 | Path-conditional Gates | `git diff`-based selective gate execution |
+| E-05 | Knowledge Graph Engine | SQLite adjacency table + recursive CTE for N-hop traversal |
+| E-06 | Hybrid Retrieval | Semantic + BM25 + graph traversal with RRF fusion |
+
+### Knowledge MCP Tools
+
+| Tool | New Parameters |
+|------|---------------|
+| `query_domain` | `temporal_mode`, `snapshot_time`, `max_results` |
+| `query_table` | `temporal_mode` |
+| `query_entity_relation` | `relation_types`, `max_depth`, `temporal_mode` |
+| `search_knowledge` | `strategy` (semantic/bm25/graph/hybrid), `domains`, `max_results` |
+
+### Gate Runner v2
+
+```bash
+# Run all gates for a phase
+.harness/gates/gate-runner.sh --phase MACHINE_CHECK --workspace .
+
+# Run with path-conditional filtering
+.harness/gates/gate-runner.sh --phase MACHINE_CHECK --changed-files "$(git diff --name-only HEAD~1)"
+
+# Run a single gate
+.harness/gates/gate-runner.sh --gate G-CODE-01 --workspace .
+```
+
 ## Design Documents
 
 - [Phase 1 Design](../../task_archive/2026-06/harness-coding-system/phase1-design.md)
 - [Phase 2 Design](../../task_archive/2026-06/harness-coding-system/phase2-design.md)
 - [Phase 3 Design](../../task_archive/2026-06/harness-coding-system/phase3-design.md)
 - [Goal Prompts](../../task_archive/2026-06/harness-coding-system/goal-prompts.md)
+- [Enhance V1 Design](docs/superpowers/specs/2026-06-07-harness-enhance-v1-design.md)
+- [Enhance V1 Plan](docs/superpowers/plans/2026-06-07-harness-enhance-v1.md)
