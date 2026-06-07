@@ -1,8 +1,23 @@
 import * as path from 'path';
+import * as fs from 'fs';
 import { initDatabase } from '../db/init.js';
 import { loadDomainGraph } from './domain-graph-loader.js';
 import { scanKnowledgeDir } from './knowledge-scanner.js';
 import { scanMemoryDir } from './memory-scanner.js';
+
+function findFile(dir: string, filename: string): string | null {
+  const direct = path.join(dir, filename);
+  if (fs.existsSync(direct)) return direct;
+  try {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        const found = findFile(path.join(dir, entry.name), filename);
+        if (found) return found;
+      }
+    }
+  } catch {}
+  return null;
+}
 
 async function main() {
   const dbPath = process.env.DB_PATH || './data/knowledge.db';
@@ -10,10 +25,15 @@ async function main() {
 
   const db = initDatabase(dbPath);
 
-  // Load domain graph
-  const graphPath = path.join(rootDir, 'knowledge/domain_graph.json');
-  const domainsLoaded = loadDomainGraph(db, graphPath);
-  console.log(`Loaded ${domainsLoaded} domains from domain_graph.json`);
+  // Load domain graph (search recursively)
+  const graphPath = findFile(path.join(rootDir, 'knowledge'), 'domain_graph.json');
+  let domainsLoaded = 0;
+  if (graphPath) {
+    domainsLoaded = loadDomainGraph(db, graphPath);
+    console.log(`Loaded ${domainsLoaded} domains from ${graphPath}`);
+  } else {
+    console.log('domain_graph.json not found, skipping');
+  }
 
   // Scan knowledge directory
   const knowledgeDir = path.join(rootDir, 'knowledge');
@@ -21,7 +41,7 @@ async function main() {
   console.log(`Scanned ${filesScanned} files from knowledge/`);
 
   // Scan memory directory
-  const memoryDir = path.join(rootDir, process.env.MEMORY_DIR || '../.claude/projects/-Users-claw-sandbox/memory');
+  const memoryDir = process.env.MEMORY_DIR || path.resolve(rootDir, '../.claude/projects/-Users-claw-sandbox/memory');
   const memoryScanned = scanMemoryDir(db, memoryDir);
   console.log(`Scanned ${memoryScanned} files from memory/`);
 
