@@ -46,9 +46,19 @@ export function scanMemoryDir(db: Database.Database, memoryDir: string): number 
         ruleType = 'pattern';
       }
 
-      // Extract first meaningful line as rule content
-      const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('#') && !l.startsWith('>'));
-      const ruleContent = lines[0]?.trim().slice(0, 500) || entry.name;
+      // Extract meaningful rules from content (skip frontmatter)
+      const bodyStart = content.indexOf('---', 3);
+      const body = bodyStart > 0 ? content.slice(bodyStart + 3) : content;
+      const lines = body.split('\n').filter(l => l.trim() && !l.startsWith('#') && !l.startsWith('>'));
+
+      // Extract key rules (limit to 3 most important)
+      const ruleLines = lines.filter(l =>
+        l.includes(':') || l.includes('：') || l.includes('规则') || l.includes('规范') || l.includes('禁止')
+      ).slice(0, 3);
+
+      const ruleContent = ruleLines.length > 0
+        ? ruleLines.join(' | ')
+        : lines[0]?.trim().slice(0, 500) || entry.name;
 
       insertRule.run(ruleContent, domain, ruleType, 0.9, entry.name);
       insertFile.run(entry.name, 'md', domain, entry.name.replace('.md', ''), '[]', fs.statSync(fullPath).mtime.toISOString(), hash);

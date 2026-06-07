@@ -4,6 +4,7 @@ import { initDatabase } from '../db/init.js';
 import { loadDomainGraph } from './domain-graph-loader.js';
 import { scanKnowledgeDir } from './knowledge-scanner.js';
 import { scanMemoryDir } from './memory-scanner.js';
+import { importSddDocuments } from './sdd-importer.js';
 
 function findFile(dir: string, filename: string): string | null {
   const direct = path.join(dir, filename);
@@ -44,6 +45,16 @@ async function main() {
   const memoryDir = process.env.MEMORY_DIR || path.resolve(rootDir, '../.claude/projects/-Users-claw-sandbox/memory');
   const memoryScanned = scanMemoryDir(db, memoryDir);
   console.log(`Scanned ${memoryScanned} files from memory/`);
+
+  // Import SDD documents (if exists)
+  const sddDir = process.env.SDD_DIR || path.resolve(rootDir, '../../tasks/2026-06-05_SDD文档提炼_hjly-admin-console');
+  let sddImported = 0;
+  if (fs.existsSync(sddDir)) {
+    sddImported = importSddDocuments(db, sddDir);
+    console.log(`Imported ${sddImported} rules from SDD documents`);
+  } else {
+    console.log('SDD directory not found, skipping');
+  }
 
   // Print summary
   const counts = {
