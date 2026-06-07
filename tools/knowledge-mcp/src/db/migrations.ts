@@ -30,6 +30,6 @@ export function runMigrations(db: Database.Database): void {
       if (stmt.trim()) db.exec(stmt);
     }
     db.prepare('INSERT INTO _migrations (id) VALUES (?)').run(m.id);
-    console.log(`Applied migration: ${m.id}`);
+    console.error(`Applied migration: ${m.id}`);
   }
 }

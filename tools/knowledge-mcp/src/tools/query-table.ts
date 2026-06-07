@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import Database from 'better-sqlite3';
-import { queryTable, TemporalFilter } from '../db/queries.js';
+import { queryTable } from '../db/queries.js';
 
 export const queryTableSchema = {
   table_name: z.string().describe('表名，如 t_order'),

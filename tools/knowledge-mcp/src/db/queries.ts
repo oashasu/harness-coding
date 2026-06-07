@@ -8,15 +8,20 @@ export interface TemporalFilter {
 function temporalClause(alias: string, filter?: TemporalFilter): string {
   const mode = filter?.mode || 'current';
   if (mode === 'all') return '';
-  const now = filter?.snapshot_time || "datetime('now')";
-  return ` AND ${alias}.valid_from <= ${now} AND (${alias}.valid_to IS NULL OR ${alias}.valid_to > ${now})`;
+  if (mode === 'snapshot' && filter?.snapshot_time) {
+    return ` AND ${alias}.valid_from <= ? AND (${alias}.valid_to IS NULL OR ${alias}.valid_to > ?)`;
+  }
+  return ` AND ${alias}.valid_from <= datetime('now') AND (${alias}.valid_to IS NULL OR ${alias}.valid_to > datetime('now'))`;
 }
 
 function temporalParams(filter?: TemporalFilter): any[] {
-  return filter?.mode === 'snapshot' && filter.snapshot_time ? [filter.snapshot_time] : [];
+  if (filter?.mode === 'snapshot' && filter.snapshot_time) {
+    return [filter.snapshot_time, filter.snapshot_time];
+  }
+  return [];
 }
 
-export function queryDomain(db: Database.Database, domainId: string) {
+export function queryDomain(db: Database.Database, domainId: string, maxResults = 50) {
   const domain = db.prepare('SELECT * FROM domains WHERE id = ?').get(domainId);
   if (!domain) return null;
 
@@ -25,8 +30,8 @@ export function queryDomain(db: Database.Database, domainId: string) {
   ).all(domainId, domainId);
 
   const tables = db.prepare(
-    'SELECT * FROM tables WHERE domain_id = ?'
-  ).all(domainId);
+    'SELECT * FROM tables WHERE domain_id = ? LIMIT ?'
+  ).all(domainId, maxResults);
 
   return { domain, edges, tables };
 }
@@ -43,17 +48,6 @@ export function queryTable(db: Database.Database, tableName: string) {
   return { table, domain, related_tables: relatedTables };
 }
 
-export function queryEntityRelation(db: Database.Database, entityName: string) {
-  const tables = db.prepare(
-    "SELECT * FROM tables WHERE table_name LIKE ? OR description LIKE ?"
-  ).all(`%${entityName}%`, `%${entityName}%`);
-
-  const domains = tables.map((t: any) =>
-    db.prepare('SELECT * FROM domains WHERE id = ?').get(t.domain_id)
-  ).filter(Boolean);
-
-  return { tables, domains };
-}
 
 export function queryApiContract(db: Database.Database, serviceName: string) {
   const rules = db.prepare(
@@ -82,6 +76,7 @@ export function queryBusinessRule(db: Database.Database, domainId?: string, rule
 
 export function searchKnowledge(db: Database.Database, queryText: string, temporal?: TemporalFilter) {
   const tc = temporalClause('kf', temporal);
+  const tp = temporalParams(temporal);
   try {
     const results = db.prepare(`
       SELECT kf.*, rank
@@ -90,14 +85,14 @@ export function searchKnowledge(db: Database.Database, queryText: string, tempor
       WHERE knowledge_fts MATCH ? ${tc}
       ORDER BY rank
       LIMIT 20
-    `).all(queryText);
+    `).all(queryText, ...tp);
     return results;
   } catch {
     return db.prepare(`
       SELECT * FROM knowledge_files kf
       WHERE (kf.title LIKE ? OR kf.tags LIKE ?) ${tc}
       LIMIT 20
-    `).all(`%${queryText}%`, `%${queryText}%`);
+    `).all(`%${queryText}%`, `%${queryText}%`, ...tp);
   }
 }
 
@@ -125,20 +120,22 @@ export function queryEntityGraph(
 ) {
   const maxDepth = options?.max_depth || 2;
   const tc = temporalClause('r', options?.temporal);
-  const typeFilter = options?.relation_types?.length
-    ? ` AND r.relation_type IN (${options.relation_types.map(() => '?').join(',')})`
+  const tp = temporalParams(options?.temporal);
+  const types = options?.relation_types || [];
+  const typePlaceholder = types.length
+    ? ` AND r.relation_type IN (${types.map(() => '?').join(',')})`
     : '';
 
   const sql = `
     WITH RECURSIVE graph_walk AS (
       SELECT source_id, target_id, relation_type, 1 as depth
       FROM relation r
-      WHERE source_id = ? ${tc} ${typeFilter}
+      WHERE source_id = ? ${tc} ${typePlaceholder}
       UNION ALL
       SELECT r.source_id, r.target_id, r.relation_type, gw.depth + 1
       FROM relation r
       JOIN graph_walk gw ON r.source_id = gw.target_id
-      WHERE gw.depth < ? ${tc} ${typeFilter}
+      WHERE gw.depth < ? ${tc} ${typePlaceholder}
     )
     SELECT DISTINCT e.*, gw.depth, gw.relation_type
     FROM graph_walk gw
@@ -146,10 +143,8 @@ export function queryEntityGraph(
     ORDER BY gw.depth
   `;
 
-  const params: any[] = [entityId, ...temporalParams(options?.temporal)];
-  if (options?.relation_types?.length) params.push(...options.relation_types);
-  params.push(maxDepth);
-  if (options?.relation_types?.length) params.push(...options.relation_types);
+  // Params: [entityId, ...tp, ...types, maxDepth, ...tp, ...types]
+  const params: any[] = [entityId, ...tp, ...types, maxDepth, ...tp, ...types];
 
   return db.prepare(sql).all(...params);
 }

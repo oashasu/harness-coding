@@ -25,7 +25,7 @@ export function hybridRetrieve(
     case 'bm25-first':
       return bm25Retrieve(db, query, topK, options?.scope);
     case 'graph-first':
-      return graphFirstRetrieve(db, query, topK);
+      return graphFirstRetrieve(db, query, topK, options?.scope);
     case 'hybrid':
     default:
       return hybridMerge(db, query, topK, options?.scope);
@@ -38,9 +38,14 @@ function semanticRetrieve(db: Database.Database, query: string, topK: number, sc
   if (domains?.length) {
     results = results.filter((r: any) => domains.includes(r.domain_id));
   }
-  return results.slice(0, topK).map((r: any, i: number) => ({
-    id: String(r.id), score: 1 / (i + 1), source: 'semantic' as const, data: r,
-  }));
+  // Use FTS5 rank (lower = more relevant) normalized to 0-1 range
+  const ranks = results.map((r: any) => r.rank ?? 0);
+  const minRank = Math.min(...ranks, 0);
+  const maxRank = Math.max(...ranks, 1);
+  return results.slice(0, topK).map((r: any) => {
+    const normalized = maxRank === minRank ? 1 : 1 - ((r.rank ?? 0) - minRank) / (maxRank - minRank);
+    return { id: String(r.id), score: normalized, source: 'semantic' as const, data: r };
+  });
 }
 
 function bm25Retrieve(db: Database.Database, query: string, topK: number, scope?: { domains?: string[] }): RankedResult[] {
@@ -60,11 +65,15 @@ function bm25Retrieve(db: Database.Database, query: string, topK: number, scope?
   }));
 }
 
-function graphFirstRetrieve(db: Database.Database, query: string, topK: number): RankedResult[] {
+function graphFirstRetrieve(db: Database.Database, query: string, topK: number, scope?: { domains?: string[] }): RankedResult[] {
   const entityMatch = query.match(/\b([A-Z][A-Z_]+)\b/);
-  if (!entityMatch) return bm25Retrieve(db, query, topK);
+  if (!entityMatch) return bm25Retrieve(db, query, topK, scope);
 
-  const graphResults = graphRetrieve(db, entityMatch[1], { maxDepth: 2 });
+  let graphResults = graphRetrieve(db, entityMatch[1], { maxDepth: 2 });
+  const domains = scope?.domains;
+  if (domains?.length) {
+    graphResults = graphResults.filter((r: any) => domains.includes(r.domain));
+  }
   return graphResults.slice(0, topK).map((r, i) => ({
     id: r.id, score: 1 / (i + 1), source: 'graph' as const, data: r,
   }));
@@ -73,7 +82,7 @@ function graphFirstRetrieve(db: Database.Database, query: string, topK: number):
 function hybridMerge(db: Database.Database, query: string, topK: number, scope?: { domains?: string[] }): RankedResult[] {
   const semantic = semanticRetrieve(db, query, topK * 2, scope);
   const bm25 = bm25Retrieve(db, query, topK * 2, scope);
-  const graph = graphFirstRetrieve(db, query, topK * 2);
+  const graph = graphFirstRetrieve(db, query, topK * 2, scope);
 
   return rrfMerge([semantic, bm25, graph]).slice(0, topK);
 }
@@ -87,6 +96,7 @@ function rrfMerge(resultSets: RankedResult[][], k = 60): RankedResult[] {
       const rrfScore = 1 / (k + rank);
       if (existing) {
         existing.score += rrfScore;
+        existing.source = 'hybrid';
       } else {
         scores.set(item.id, { score: rrfScore, source: item.source, data: item.data });
       }

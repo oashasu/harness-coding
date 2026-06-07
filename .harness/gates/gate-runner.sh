@@ -80,7 +80,7 @@ for yaml_file in "$DECLARATIVE_DIR"/*.yaml; do
             MATCHED=false
             while IFS= read -r changed; do
                 while IFS= read -r pattern; do
-                    if [[ "$changed" == $pattern ]]; then
+                    if [[ "$changed" == "$pattern" ]]; then
                         MATCHED=true
                         break 2
                     fi
@@ -118,6 +118,11 @@ for yaml_file in "$DECLARATIVE_DIR"/*.yaml; do
         echo "[GATE] $GATE_ID: FAIL"
         FAIL_COUNT=$((FAIL_COUNT + 1))
         RESULTS+=("{\"gate_id\":\"$GATE_ID\",\"status\":\"FAIL\"}")
+        # Stop immediately on blocking gate failure
+        if [ "$GATE_BLOCKING" = "true" ]; then
+            echo "[GATE] Blocking gate $GATE_ID failed — aborting"
+            break
+        fi
     fi
 done
 
