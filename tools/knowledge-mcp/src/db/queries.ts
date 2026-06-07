@@ -1,5 +1,21 @@
 import Database from 'better-sqlite3';
 
+export interface TemporalFilter {
+  mode?: 'current' | 'snapshot' | 'all';
+  snapshot_time?: string;
+}
+
+function temporalClause(alias: string, filter?: TemporalFilter): string {
+  const mode = filter?.mode || 'current';
+  if (mode === 'all') return '';
+  const now = filter?.snapshot_time || "datetime('now')";
+  return ` AND ${alias}.valid_from <= ${now} AND (${alias}.valid_to IS NULL OR ${alias}.valid_to > ${now})`;
+}
+
+function temporalParams(filter?: TemporalFilter): any[] {
+  return filter?.mode === 'snapshot' && filter.snapshot_time ? [filter.snapshot_time] : [];
+}
+
 export function queryDomain(db: Database.Database, domainId: string) {
   const domain = db.prepare('SELECT * FROM domains WHERE id = ?').get(domainId);
   if (!domain) return null;
@@ -64,22 +80,22 @@ export function queryBusinessRule(db: Database.Database, domainId?: string, rule
   return db.prepare(sql).all(...params);
 }
 
-export function searchKnowledge(db: Database.Database, queryText: string) {
+export function searchKnowledge(db: Database.Database, queryText: string, temporal?: TemporalFilter) {
+  const tc = temporalClause('kf', temporal);
   try {
     const results = db.prepare(`
       SELECT kf.*, rank
       FROM knowledge_fts
       JOIN knowledge_files kf ON knowledge_fts.rowid = kf.id
-      WHERE knowledge_fts MATCH ?
+      WHERE knowledge_fts MATCH ? ${tc}
       ORDER BY rank
       LIMIT 20
     `).all(queryText);
     return results;
   } catch {
-    // Fallback to LIKE search
     return db.prepare(`
-      SELECT * FROM knowledge_files
-      WHERE title LIKE ? OR tags LIKE ?
+      SELECT * FROM knowledge_files kf
+      WHERE (kf.title LIKE ? OR kf.tags LIKE ?) ${tc}
       LIMIT 20
     `).all(`%${queryText}%`, `%${queryText}%`);
   }
@@ -100,4 +116,70 @@ export function queryDocLayer(db: Database.Database, layer?: string, domainId?: 
 
   sql += ' ORDER BY last_modified DESC';
   return db.prepare(sql).all(...params);
+}
+
+export function queryEntityGraph(
+  db: Database.Database,
+  entityId: string,
+  options?: { max_depth?: number; relation_types?: string[]; temporal?: TemporalFilter }
+) {
+  const maxDepth = options?.max_depth || 2;
+  const tc = temporalClause('r', options?.temporal);
+  const typeFilter = options?.relation_types?.length
+    ? ` AND r.relation_type IN (${options.relation_types.map(() => '?').join(',')})`
+    : '';
+
+  const sql = `
+    WITH RECURSIVE graph_walk AS (
+      SELECT source_id, target_id, relation_type, 1 as depth
+      FROM relation r
+      WHERE source_id = ? ${tc} ${typeFilter}
+      UNION ALL
+      SELECT r.source_id, r.target_id, r.relation_type, gw.depth + 1
+      FROM relation r
+      JOIN graph_walk gw ON r.source_id = gw.target_id
+      WHERE gw.depth < ? ${tc} ${typeFilter}
+    )
+    SELECT DISTINCT e.*, gw.depth, gw.relation_type
+    FROM graph_walk gw
+    JOIN entity e ON e.id = gw.target_id
+    ORDER BY gw.depth
+  `;
+
+  const params: any[] = [entityId, ...temporalParams(options?.temporal)];
+  if (options?.relation_types?.length) params.push(...options.relation_types);
+  params.push(maxDepth);
+  if (options?.relation_types?.length) params.push(...options.relation_types);
+
+  return db.prepare(sql).all(...params);
+}
+
+export function insertEntity(db: Database.Database, entity: {
+  id: string; name: string; entity_type: string; domain?: string;
+  description?: string; properties?: any;
+}) {
+  db.prepare(`
+    INSERT OR REPLACE INTO entity (id, name, entity_type, domain, description, properties)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(entity.id, entity.name, entity.entity_type, entity.domain || null,
+    entity.description || null, entity.properties ? JSON.stringify(entity.properties) : null);
+}
+
+export function insertRelation(db: Database.Database, relation: {
+  id: string; source_id: string; target_id: string; relation_type: string;
+  weight?: number; properties?: any;
+}) {
+  db.prepare(`
+    INSERT OR REPLACE INTO relation (id, source_id, target_id, relation_type, weight, properties)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(relation.id, relation.source_id, relation.target_id, relation.relation_type,
+    relation.weight || 1.0, relation.properties ? JSON.stringify(relation.properties) : null);
+}
+
+export function invalidateEntity(db: Database.Database, id: string) {
+  db.prepare(`UPDATE entity SET valid_to = datetime('now') WHERE id = ?`).run(id);
+}
+
+export function invalidateRelation(db: Database.Database, id: string) {
+  db.prepare(`UPDATE relation SET valid_to = datetime('now') WHERE id = ?`).run(id);
 }
