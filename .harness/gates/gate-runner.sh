@@ -20,10 +20,13 @@ done
 mkdir -p "$WORKSPACE/.harness/output/logs"
 
 case "$GATE" in
-    G-COMPILE)   exec "$SCRIPT_DIR/g-compile.sh" "$WORKSPACE" ;;
-    G-TEST)      exec "$SCRIPT_DIR/g-test.sh" "$WORKSPACE" ;;
-    G-COVERAGE)  exec "$SCRIPT_DIR/g-coverage.sh" "$WORKSPACE" "$THRESHOLD" ;;
-    G-STATIC)    exec "$SCRIPT_DIR/g-static.sh" "$WORKSPACE" ;;
-    G-SECURITY)  exec "$SCRIPT_DIR/g-security.sh" "$WORKSPACE" ;;
+    G-REQ-01)    exec "$SCRIPT_DIR/g-req-01.sh" "$WORKSPACE" ;;
+    G-SPEC-01)   exec "$SCRIPT_DIR/g-spec-01.sh" "$WORKSPACE" ;;
+    G-SPEC-02)   exec "$SCRIPT_DIR/g-spec-02.sh" "$WORKSPACE" ;;
+    G-CODE-01|G-COMPILE)   exec "$SCRIPT_DIR/g-compile.sh" "$WORKSPACE" ;;
+    G-CODE-02|G-TEST)      exec "$SCRIPT_DIR/g-test.sh" "$WORKSPACE" ;;
+    G-CODE-03|G-COVERAGE)  exec "$SCRIPT_DIR/g-coverage.sh" "$WORKSPACE" "$THRESHOLD" ;;
+    G-CODE-04|G-STATIC)    exec "$SCRIPT_DIR/g-static.sh" "$WORKSPACE" ;;
+    G-TEST-02|G-SECURITY)  exec "$SCRIPT_DIR/g-security.sh" "$WORKSPACE" ;;
     *) echo "Unknown gate: $GATE"; exit 1 ;;
 esac
