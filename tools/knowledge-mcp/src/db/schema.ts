@@ -96,3 +96,41 @@ CREATE VIRTUAL TABLE IF NOT EXISTS knowledge_fts USING fts5(
   content_rowid=id
 );
 `;
+
+export const BITEMPORAL_MIGRATION_SQL = `
+ALTER TABLE knowledge_files ADD COLUMN valid_from TEXT DEFAULT (datetime('now'));
+ALTER TABLE knowledge_files ADD COLUMN valid_to TEXT DEFAULT NULL;
+`;
+
+export const GRAPH_SCHEMA_SQL = `
+CREATE TABLE IF NOT EXISTS entity (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  domain TEXT,
+  description TEXT,
+  properties TEXT,
+  valid_from TEXT DEFAULT (datetime('now')),
+  valid_to TEXT DEFAULT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_entity_name ON entity(name);
+CREATE INDEX IF NOT EXISTS idx_entity_type ON entity(entity_type);
+CREATE INDEX IF NOT EXISTS idx_entity_domain ON entity(domain);
+
+CREATE TABLE IF NOT EXISTS relation (
+  id TEXT PRIMARY KEY,
+  source_id TEXT NOT NULL,
+  target_id TEXT NOT NULL,
+  relation_type TEXT NOT NULL,
+  weight REAL DEFAULT 1.0,
+  properties TEXT,
+  valid_from TEXT DEFAULT (datetime('now')),
+  valid_to TEXT DEFAULT NULL,
+  created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_relation_source ON relation(source_id);
+CREATE INDEX IF NOT EXISTS idx_relation_target ON relation(target_id);
+CREATE INDEX IF NOT EXISTS idx_relation_type ON relation(relation_type);
+`;
