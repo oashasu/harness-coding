@@ -1,0 +1,4 @@
+# HARNESS skill aliases
+# Allows remapping capability IDs to different skill implementations
+version: "1.0"
+aliases: {}

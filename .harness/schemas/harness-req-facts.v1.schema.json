@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "harness-req-facts.v1.schema.json",
+  "title": "HarnessReqFactsV1",
+  "description": "Structured domain facts extracted from requirement documents. Generalized from spec-business-facts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_context",
+    "domain_facts",
+    "open_questions",
+    "evidence_refs"
+  ],
+  "properties": {
+    "task_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_entity"
+      ],
+      "properties": {
+        "target_entity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "is_incremental": {
+          "type": "boolean"
+        }
+      }
+    },
+    "domain_facts": {
+      "type": "object",
+      "description": "Domain-specific facts. Keys and structure are configurable per project.",
+      "additionalProperties": {
+        "type": "object",
+        "description": "A fact category with key-value pairs"
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "question",
+          "source_ref"
+        ],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": [
+              "CRITICAL",
+              "HIGH",
+              "MEDIUM",
+              "LOW"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

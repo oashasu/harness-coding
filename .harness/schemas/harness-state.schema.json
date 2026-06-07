@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness-state.v1.schema.json",
+  "title": "HARNESS Pipeline State",
+  "description": "Root state file for HARNESS workflow pipeline (pipeline.json)",
+  "type": "object",
+  "required": ["version", "task", "checkpoints", "artifacts", "resume_context"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "task": {
+      "type": "object",
+      "required": ["task_id", "target_entity"],
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "description": "Unique task identifier"
+        },
+        "target_entity": {
+          "type": "string",
+          "description": "Target entity or domain being worked on"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "current_step": {
+      "type": "string",
+      "enum": ["REQ_DRAFT", "REQ_REVIEW", "SPEC_DRAFT", "SPEC_REVIEW", "CODE_IMPL", "MACHINE_CHECK", "DUAL_REVIEW", "FINAL_ACCEPT", "KNOWLEDGE_ARCHIVE", "DONE", "TERMINATED"]
+    },
+    "checkpoints": {
+      "type": "object",
+      "properties": {
+        "last_checkpoint": {
+          "type": "string",
+          "enum": ["NONE", "req-ok", "spec-ok", "code-ok", "review-ok", "final-ok", "archive-ok"]
+        },
+        "gate_context": {
+          "type": "object",
+          "properties": {
+            "req_validation_passed": { "type": "boolean" },
+            "spec_validation_passed": { "type": "boolean" },
+            "allow_codegen": {
+              "type": "string",
+              "enum": ["UNSET", "YES", "NO", "YES_WITH_CONDITIONS"]
+            }
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "description": "Phase-specific artifacts and outputs"
+    },
+    "resume_context": {
+      "type": "object",
+      "properties": {
+        "current_execution_unit": { "type": "string" },
+        "next_required_action": { "type": "string" },
+        "required_script": { "type": "string" },
+        "pending_checkpoint": { "type": "string" },
+        "last_review_status": { "type": "string" }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "description": "HMAC-SHA256 integrity seal",
+      "properties": {
+        "version": { "type": "string" },
+        "algorithm": { "type": "string" },
+        "key_fingerprint": { "type": "string" },
+        "signed_at": { "type": "string" },
+        "state_hmac": { "type": "string" }
+      }
+    }
+  }
+}

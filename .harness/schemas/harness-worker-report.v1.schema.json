@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HarnessWorkerReportV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "task_id",
+    "task_scope",
+    "phase",
+    "execution_unit",
+    "worker_status",
+    "summary",
+    "changed_files",
+    "generated_files",
+    "commands",
+    "script_status",
+    "compile_status"
+  ],
+  "properties": {
+    "manifest_version": {
+      "const": "2.0"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^(stage|gen_node):[a-z]+:[A-Za-z0-9_]+:[a-z0-9_-]+$"
+    },
+    "task_scope": {
+      "type": "string",
+      "enum": [
+        "stage",
+        "gen_node"
+      ]
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "req_draft",
+        "req_review",
+        "spec_draft",
+        "spec_review",
+        "code_impl",
+        "machine_check",
+        "dual_review",
+        "final_accept",
+        "knowledge_archive",
+        "DONE",
+        "TERMINATED"
+      ]
+    },
+    "execution_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "node_id": {
+      "type": "string",
+      "pattern": "^G0[1-9]$"
+    },
+    "worker_status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "failed",
+        "blocked"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "changed_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50
+    },
+    "generated_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "command",
+          "status"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed",
+              "not_run"
+            ]
+          },
+          "log_path": {
+            "type": "string"
+          }
+        }
+      },
+      "maxItems": 20
+    },
+    "script_status": {
+      "type": "string",
+      "enum": [
+        "passed",
+        "failed",
+        "not_run"
+      ]
+    },
+    "compile_status": {
+      "type": "string",
+      "enum": [
+        "passed",
+        "failed",
+        "not_run"
+      ]
+    },
+    "compile_command": {
+      "type": "string"
+    },
+    "compile_log_path": {
+      "type": "string"
+    },
+    "review_hints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "maxItems": 10
+    }
+  },
+  "$id": "harness-worker-report.v1.schema.json"
+}

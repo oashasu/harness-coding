@@ -1,0 +1,307 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HarnessNextActionPlanV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "plan_version",
+    "current_phase",
+    "current_execution_unit",
+    "next_required_action",
+    "required_script",
+    "action_kind",
+    "task_scope",
+    "phase",
+    "execution_unit",
+    "commands"
+  ],
+  "properties": {
+    "plan_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "current_phase": {
+      "type": "string",
+      "enum": [
+        "req_draft",
+        "req_review",
+        "spec_draft",
+        "spec_review",
+        "code_impl",
+        "machine_check",
+        "dual_review",
+        "final_accept",
+        "knowledge_archive",
+        "DONE",
+        "TERMINATED"
+      ]
+    },
+    "current_execution_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "next_required_action": {
+      "type": "string",
+      "minLength": 1
+    },
+    "required_script": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action_kind": {
+      "type": "string",
+      "enum": [
+        "dispatch_worker",
+        "dispatch_review",
+        "run_gate",
+        "run_checkpoint",
+        "wait_for_user",
+        "archive"
+      ]
+    },
+    "task_scope": {
+      "type": "string",
+      "enum": [
+        "stage",
+        "gen_node",
+        "gen_phase",
+        "checkpoint",
+        "terminal"
+      ]
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "req_draft",
+        "req_review",
+        "spec_draft",
+        "spec_review",
+        "code_impl",
+        "machine_check",
+        "dual_review",
+        "final_accept",
+        "knowledge_archive",
+        "DONE",
+        "TERMINATED"
+      ]
+    },
+    "execution_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_manifest": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dispatch_payload": {
+      "type": "string",
+      "minLength": 1
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "script",
+          "args"
+        ],
+        "properties": {
+          "script": {
+            "type": "string",
+            "minLength": 1
+          },
+          "script_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "output": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "post_gate_commands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "script",
+          "args"
+        ],
+        "properties": {
+          "script": {
+            "type": "string",
+            "minLength": 1
+          },
+          "script_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "output": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "collectors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "worker_report",
+        "review_result"
+      ],
+      "properties": {
+        "worker_report": {
+          "type": "string",
+          "const": "collect-worker-report.py"
+        },
+        "review_result": {
+          "type": "string",
+          "const": "collect-review.py"
+        }
+      }
+    },
+    "expected_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "path"
+      ],
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "expected_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "path"
+      ],
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "node_id": {
+          "type": "string",
+          "enum": [
+            "G01",
+            "G02",
+            "G03",
+            "G04",
+            "G05",
+            "G06",
+            "G07",
+            "G08",
+            "G09"
+          ]
+        }
+      }
+    },
+    "followup": {
+      "type": "string",
+      "enum": [
+        "phase-handoff.py",
+        "advance-gen-node.py",
+        "register-final-artifacts.py",
+        "archive-harness.py"
+      ]
+    },
+    "pending_checkpoint": {
+      "type": "string"
+    },
+    "allowed_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action_kind": {
+            "enum": [
+              "dispatch_worker",
+              "dispatch_review"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "task_id",
+          "task_manifest",
+          "dispatch_payload",
+          "collectors",
+          "expected_report",
+          "expected_review"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action_kind": {
+            "const": "run_gate"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "followup"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action_kind": {
+            "const": "wait_for_user"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "pending_checkpoint",
+          "allowed_actions"
+        ]
+      }
+    }
+  ],
+  "$id": "harness-next-action-plan.v1.schema.json"
+}

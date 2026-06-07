@@ -1,0 +1,138 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HarnessNextActionExecutionV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "execution_version",
+    "status",
+    "plan_file",
+    "action_kind",
+    "task_scope",
+    "phase",
+    "execution_unit",
+    "dry_run",
+    "commands"
+  ],
+  "properties": {
+    "execution_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PASS"
+      ]
+    },
+    "plan_file": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action_kind": {
+      "type": "string",
+      "enum": [
+        "dispatch_worker",
+        "dispatch_review",
+        "run_gate",
+        "run_checkpoint",
+        "archive"
+      ]
+    },
+    "task_scope": {
+      "type": "string",
+      "enum": [
+        "stage",
+        "gen_node",
+        "gen_phase",
+        "checkpoint",
+        "terminal"
+      ]
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "req_draft",
+        "req_review",
+        "spec_draft",
+        "spec_review",
+        "code_impl",
+        "machine_check",
+        "dual_review",
+        "final_accept",
+        "knowledge_archive",
+        "DONE",
+        "TERMINATED"
+      ]
+    },
+    "execution_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dry_run": {
+      "type": "boolean"
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "script",
+          "status",
+          "output"
+        ],
+        "properties": {
+          "script": {
+            "type": "string",
+            "enum": [
+              "build-stage-task.py",
+              "build-gen-node-task.py",
+              "dispatch-worker.py",
+              "preflight.py",
+              "advance-gen-node.py",
+              "phase-handoff.py",
+              "register-final-artifacts.py",
+              "archive-harness.py"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PASS",
+              "DRY_RUN"
+            ]
+          },
+          "output": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action_kind": {
+            "enum": [
+              "dispatch_worker",
+              "dispatch_review"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "task_id"
+        ]
+      }
+    }
+  ],
+  "$id": "harness-next-action-execution.v1.schema.json"
+}

@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "harness-gate-result.v1.schema.json",
+  "title": "HarnessGateResultV1",
+  "description": "Standardized gate execution result.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "gate_id",
+    "gate_level",
+    "status",
+    "executed_at"
+  ],
+  "properties": {
+    "gate_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^G-[A-Z]+-[0-9]+$"
+    },
+    "gate_level": {
+      "type": "string",
+      "enum": [
+        "L4_Enforce",
+        "L3_Policy"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "SKIP",
+        "ERROR"
+      ]
+    },
+    "executed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "executor": {
+      "type": "string",
+      "description": "Script path or agent name"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "details": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

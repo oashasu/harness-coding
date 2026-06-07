@@ -1,0 +1,16 @@
+# HARNESS capabilities configuration
+# Maps capability IDs to default skill providers
+version: "1.0"
+capabilities:
+  doc_parse:
+    default_skill: doc-parser
+    env_var: DOC_PARSE_SKILL
+    description: "Document parsing (PDF, DOCX, DOC)"
+  code_gen:
+    default_skill: coding-worker
+    env_var: CODE_GEN_SKILL
+    description: "Code generation from specs"
+  test_gen:
+    default_skill: test-evaluator
+    env_var: TEST_GEN_SKILL
+    description: "Test generation and evaluation"

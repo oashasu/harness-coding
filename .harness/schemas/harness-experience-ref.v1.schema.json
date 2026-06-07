@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "harness-experience-ref.v1.schema.json",
+  "title": "HarnessExperienceRefV1",
+  "description": "Reference to an experience entry for injection into agent context.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ref_id",
+    "type",
+    "summary"
+  ],
+  "properties": {
+    "ref_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^EXP-[A-Z][0-9]+$"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "positive",
+        "negative",
+        "pattern"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "source_failure_id": {
+      "type": "string",
+      "description": "Link to failure_memory.jsonl entry"
+    },
+    "applicable_phases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "req_draft",
+          "req_review",
+          "spec_draft",
+          "spec_review",
+          "code_impl",
+          "machine_check",
+          "dual_review",
+          "final_accept",
+          "knowledge_archive"
+        ]
+      }
+    },
+    "weight": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Decay weight, 1.0 = fresh, 0.0 = expired"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_applied_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

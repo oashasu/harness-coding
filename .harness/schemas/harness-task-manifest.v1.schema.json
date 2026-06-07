@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "harness-task-manifest.v1.schema.json",
+  "title": "HarnessTaskManifestV1",
+  "description": "Worker dispatch manifest with contract validation. Generalized from state-contracts.",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "task_scope",
+    "phase",
+    "execution_unit",
+    "task_id",
+    "dispatch_role",
+    "review_role",
+    "inputs",
+    "expected_outputs"
+  ],
+  "properties": {
+    "manifest_version": {
+      "const": "1.0"
+    },
+    "task_scope": {
+      "enum": [
+        "stage",
+        "gen_node"
+      ]
+    },
+    "phase": {
+      "enum": [
+        "req_draft",
+        "req_review",
+        "spec_draft",
+        "spec_review",
+        "code_impl",
+        "machine_check",
+        "dual_review",
+        "final_accept",
+        "knowledge_archive",
+        "DONE",
+        "TERMINATED"
+      ]
+    },
+    "execution_unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "node_id": {
+      "type": "string",
+      "pattern": "^G0[1-9]$"
+    },
+    "req_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Requirement ID linking to .harness/req/"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^(stage|gen_node):[a-z_]+:[A-Za-z0-9_]+:[a-z0-9_-]+$"
+    },
+    "dispatch_role": {
+      "const": "HARNESS-Worker"
+    },
+    "review_role": {
+      "const": "HARNESS-Reviewer"
+    },
+    "inputs": {
+      "type": "object",
+      "properties": {
+        "forbidden_primary_inputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "expected_outputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "required_reports": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "generation_mode": {
+      "type": "string",
+      "enum": [
+        "yaml_to_java",
+        "spec_to_code",
+        "manual"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "if": {
+    "properties": {
+      "task_scope": {
+        "const": "gen_node"
+      }
+    }
+  },
+  "then": {
+    "required": [
+      "node_id"
+    ]
+  }
+}
