@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { initDatabase } from '../db/init.js';
+import { runMigrations } from '../db/migrations.js';
 import { loadDomainGraph } from './domain-graph-loader.js';
 import { scanKnowledgeDir } from './knowledge-scanner.js';
 import { scanMemoryDir } from './memory-scanner.js';
@@ -25,6 +26,7 @@ async function main() {
   const rootDir = process.env.ROOT_DIR || path.resolve('../../');
 
   const db = initDatabase(dbPath);
+  runMigrations(db);
 
   // Load domain graph (search recursively)
   const graphPath = findFile(path.join(rootDir, 'knowledge'), 'domain_graph.json');
@@ -46,14 +48,23 @@ async function main() {
   const memoryScanned = scanMemoryDir(db, memoryDir);
   console.log(`Scanned ${memoryScanned} files from memory/`);
 
-  // Import SDD documents (if exists)
-  const sddDir = process.env.SDD_DIR || path.resolve(rootDir, '../../tasks/2026-06-05_SDD文档提炼_hjly-admin-console');
+  // Import SDD documents (scan all SDD directories)
+  const tasksDir = path.resolve(rootDir, '../../tasks');
   let sddImported = 0;
-  if (fs.existsSync(sddDir)) {
-    sddImported = importSddDocuments(db, sddDir);
-    console.log(`Imported ${sddImported} rules from SDD documents`);
+  if (fs.existsSync(tasksDir)) {
+    const sddDirs = fs.readdirSync(tasksDir, { withFileTypes: true })
+      .filter(d => d.isDirectory() && d.name.includes('SDD'))
+      .map(d => path.join(tasksDir, d.name));
+    for (const sddDir of sddDirs) {
+      const count = importSddDocuments(db, sddDir);
+      if (count > 0) {
+        console.log(`Imported ${count} rules from ${path.basename(sddDir)}`);
+        sddImported += count;
+      }
+    }
+    console.log(`Total imported ${sddImported} rules from SDD documents`);
   } else {
-    console.log('SDD directory not found, skipping');
+    console.log('Tasks directory not found, skipping SDD import');
   }
 
   // Print summary
