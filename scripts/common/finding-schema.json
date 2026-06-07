@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Harness Quality Finding",
+  "description": "统一的代码质量发现报告格式",
+  "type": "object",
+  "required": ["finding_id", "tier", "source", "severity", "category", "file", "line", "rule"],
+  "properties": {
+    "finding_id": {
+      "type": "string",
+      "pattern": "^F-[A-Z]{2,4}-\\d{3}$",
+      "description": "唯一标识，格式：F-{CATEGORY}-{SEQ}"
+    },
+    "tier": {
+      "type": "integer",
+      "enum": [0, 1, 2, 3, 4],
+      "description": "质量层级：0=硬门禁, 1=规则脚本, 2=指标脚本, 3=Agent审查, 4=建议"
+    },
+    "source": {
+      "type": "string",
+      "description": "产生发现的脚本或Agent名称"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"],
+      "description": "严重级别"
+    },
+    "category": {
+      "type": "string",
+      "description": "分类标签，如 sql-injection, bigdecimal, coverage"
+    },
+    "file": {
+      "type": "string",
+      "description": "相关文件路径"
+    },
+    "line": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "行号，0 表示文件级别"
+    },
+    "code": {
+      "type": "string",
+      "description": "相关代码片段，截断至 200 字符"
+    },
+    "rule": {
+      "type": "string",
+      "description": "触发的规则描述"
+    },
+    "fix_suggestion": {
+      "type": "string",
+      "description": "修复建议"
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Tier 3+ Agent 审查的证据锚定",
+      "properties": {
+        "file": { "type": "string" },
+        "line_start": { "type": "integer" },
+        "line_end": { "type": "integer" },
+        "code": { "type": "string" }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "扩展字段"
+    }
+  }
+}

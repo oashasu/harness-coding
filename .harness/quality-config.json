@@ -1,0 +1,50 @@
+{
+  "version": "2.0.0",
+  "thresholds": {
+    "light": {
+      "min_score": 70,
+      "required_tiers": [0, 1],
+      "optional_tiers": [2],
+      "skip_tiers": [3, 4]
+    },
+    "riper-one": {
+      "min_score": 80,
+      "required_tiers": [0, 1, 2],
+      "optional_tiers": [3],
+      "skip_tiers": [4]
+    },
+    "super-dev": {
+      "min_score": 90,
+      "required_tiers": [0, 1, 2, 3],
+      "optional_tiers": [4],
+      "skip_tiers": []
+    }
+  },
+  "tier0": {
+    "checks": ["compile", "lint", "write-paths", "format"],
+    "blocking": true
+  },
+  "tier1": {
+    "checks": ["sql-injection", "bigdecimal", "layer-violation", "hardcoded", "null-safety"],
+    "blocking": true
+  },
+  "tier2": {
+    "checks": ["coverage", "assertion-density", "complexity", "file-size", "duplication"],
+    "blocking": true
+  },
+  "tier3": {
+    "agents": ["test-agent", "arch-agent"],
+    "scope_verified_required": true,
+    "evidence_anchoring_required": true,
+    "blocking": true
+  },
+  "tier4": {
+    "agents": ["suggestion-agent"],
+    "blocking": false
+  },
+  "rejection": {
+    "auto_reject_on_critical": true,
+    "auto_reject_on_high_threshold": 3,
+    "max_retries": 2
+  }
+}
