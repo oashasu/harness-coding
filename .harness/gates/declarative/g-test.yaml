@@ -1,0 +1,16 @@
+gate_id: G-CODE-02
+name: test-check
+layer: L4-Enforce
+phase: MACHINE_CHECK
+blocking: true
+trigger:
+  paths: ["**/*.java", "**/*.ts", "**/*.go"]
+  modes: []
+check:
+  type: script
+  script: .harness/gates/g-test.sh
+  args: ["${workspace}"]
+on_failure:
+  message: "测试失败，请修复失败的测试"
+  hint: "运行 mvn test 查看详细错误"
+  retry_limit: 3

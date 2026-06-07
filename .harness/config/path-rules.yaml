@@ -1,0 +1,19 @@
+rules:
+  - name: java-source
+    paths: ["**/*.java"]
+    gates: [G-CODE-01, G-CODE-02, G-CODE-03, G-CODE-04]
+  - name: typescript-source
+    paths: ["**/*.ts"]
+    gates: [G-CODE-01, G-CODE-02]
+  - name: go-source
+    paths: ["**/*.go"]
+    gates: [G-CODE-01, G-CODE-02]
+  - name: security-relevant
+    paths: ["**/*.java", "**/*.ts", "**/*.env*", "**/*config*"]
+    gates: [G-TEST-02]
+  - name: requirement-docs
+    paths: ["**/requirement*.md", "**/req/**"]
+    gates: [G-REQ-01]
+  - name: spec-docs
+    paths: ["**/spec*.md", "**/task_brief*"]
+    gates: [G-SPEC-01, G-SPEC-02]

@@ -1,0 +1,16 @@
+gate_id: G-REQ-01
+name: requirement-schema
+layer: L4-Enforce
+phase: REQ_REVIEW
+blocking: true
+trigger:
+  paths: []
+  modes: []
+check:
+  type: script
+  script: .harness/gates/g-req-01.sh
+  args: ["${workspace}"]
+on_failure:
+  message: "需求文档格式不合规"
+  hint: "检查 requirement.md 必填字段"
+  retry_limit: 3

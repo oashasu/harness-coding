@@ -1,0 +1,18 @@
+gate_id: G-CODE-03
+name: coverage-check
+layer: L4-Enforce
+phase: MACHINE_CHECK
+blocking: true
+trigger:
+  paths: ["**/*.java"]
+  modes: ["riper-one", "super-dev"]
+check:
+  type: threshold
+  script: .harness/gates/g-coverage.sh
+  args: ["${workspace}", "80"]
+  thresholds:
+    line_coverage: 80
+on_failure:
+  message: "测试覆盖率不足80%"
+  hint: "补充单元测试以提高覆盖率"
+  retry_limit: 2

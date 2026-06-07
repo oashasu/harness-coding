@@ -1,0 +1,16 @@
+gate_id: G-SPEC-01
+name: spec-schema
+layer: L4-Enforce
+phase: SPEC_REVIEW
+blocking: true
+trigger:
+  paths: []
+  modes: []
+check:
+  type: script
+  script: .harness/gates/g-spec-01.sh
+  args: ["${workspace}"]
+on_failure:
+  message: "Spec文档格式不合规"
+  hint: "检查 task_brief.md Schema"
+  retry_limit: 3

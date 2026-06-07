@@ -1,0 +1,16 @@
+gate_id: G-TEST-02
+name: security-check
+layer: L4-Enforce
+phase: MACHINE_CHECK
+blocking: true
+trigger:
+  paths: ["**/*.java", "**/*.ts"]
+  modes: ["riper-one", "super-dev"]
+check:
+  type: script
+  script: .harness/gates/g-security.sh
+  args: ["${workspace}"]
+on_failure:
+  message: "安全扫描发现问题"
+  hint: "检查硬编码密钥、SQL注入等安全问题"
+  retry_limit: 2

@@ -1,0 +1,16 @@
+gate_id: G-SPEC-02
+name: rid-uniqueness
+layer: L4-Enforce
+phase: SPEC_REVIEW
+blocking: true
+trigger:
+  paths: []
+  modes: []
+check:
+  type: script
+  script: .harness/gates/g-spec-02.sh
+  args: ["${workspace}"]
+on_failure:
+  message: "R-ID不唯一"
+  hint: "检查验收标准编号唯一性"
+  retry_limit: 3

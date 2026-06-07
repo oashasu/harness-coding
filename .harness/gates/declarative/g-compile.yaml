@@ -1,0 +1,16 @@
+gate_id: G-CODE-01
+name: compile-check
+layer: L4-Enforce
+phase: MACHINE_CHECK
+blocking: true
+trigger:
+  paths: ["**/*.java", "**/*.ts", "**/*.go"]
+  modes: []
+check:
+  type: script
+  script: .harness/gates/g-compile.sh
+  args: ["${workspace}"]
+on_failure:
+  message: "编译失败，请修复后重试"
+  hint: "运行 mvn compile 查看详细错误"
+  retry_limit: 3

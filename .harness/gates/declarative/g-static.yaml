@@ -1,0 +1,16 @@
+gate_id: G-CODE-04
+name: static-analysis
+layer: L4-Enforce
+phase: MACHINE_CHECK
+blocking: true
+trigger:
+  paths: ["**/*.java"]
+  modes: ["riper-one", "super-dev"]
+check:
+  type: script
+  script: .harness/gates/g-static.sh
+  args: ["${workspace}"]
+on_failure:
+  message: "静态扫描发现CRITICAL问题"
+  hint: "运行 spotbugs:check 查看详情"
+  retry_limit: 2
