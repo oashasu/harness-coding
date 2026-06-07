@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-HARNESS Gate Runner — orchestrates all 14 gates.
+HARNESS Gate Runner — orchestrates all 16 gates.
 
 L4 Enforce gates (deterministic):
   G-REQ-01: requirement.md schema validation
@@ -19,6 +19,8 @@ L3 Policy gates (model judgment):
   G-ARCH-01: architecture principles
   G-ARCH-02: error code specification
   G-ARCH-03: cross-package calls
+  G-REVIEW-01: local review consensus (multi-model cross-validation)
+  G-REVIEW-02: global review consensus (multi-model cross-validation)
 """
 from __future__ import annotations
 
@@ -54,6 +56,8 @@ L3_GATES = {
     "G-ARCH-01": "architecture_principles",
     "G-ARCH-02": "error_code_specification",
     "G-ARCH-03": "cross_package_calls",
+    "G-REVIEW-01": "local_review_consensus",
+    "G-REVIEW-02": "global_review_consensus",
 }
 
 STEP_TO_GATES = {
@@ -61,7 +65,7 @@ STEP_TO_GATES = {
     "REQ_REVIEW": ["G-REQ-02"],
     "SPEC_DRAFT": ["G-SPEC-01", "G-SPEC-02"],
     "SPEC_REVIEW": ["G-SPEC-03"],
-    "CODE_IMPL": ["G-CODE-01", "G-CODE-02", "G-CODE-03", "G-CODE-04"],
+    "CODE_IMPL": ["G-CODE-01", "G-CODE-02", "G-CODE-03", "G-CODE-04", "G-REVIEW-01", "G-REVIEW-02"],
     "MACHINE_CHECK": ["G-TEST-01", "G-TEST-02"],
     "DUAL_REVIEW": ["G-ARCH-01", "G-ARCH-02", "G-ARCH-03"],
     "FINAL_ACCEPT": [],

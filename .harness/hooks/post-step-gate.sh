@@ -24,7 +24,7 @@ declare -A STEP_GATES=(
     ["REQ_REVIEW"]=""
     ["SPEC_DRAFT"]="G-SPEC-01 G-SPEC-02"
     ["SPEC_REVIEW"]=""
-    ["CODE_IMPL"]="G-CODE-01 G-CODE-02 G-CODE-03 G-CODE-04"
+    ["CODE_IMPL"]="G-CODE-01 G-CODE-02 G-CODE-03 G-CODE-04 G-REVIEW-01 G-REVIEW-02"
     ["MACHINE_CHECK"]="G-TEST-01 G-TEST-02"
     ["DUAL_REVIEW"]="G-ARCH-01 G-ARCH-02 G-ARCH-03"
     ["FINAL_ACCEPT"]=""
@@ -44,7 +44,8 @@ FAILED=0
 for GATE in $GATES; do
     # L3 gates are model-judgment, skip in shell hook
     if [[ "$GATE" == G-REQ-02 ]] || [[ "$GATE" == G-SPEC-03 ]] || \
-       [[ "$GATE" == G-TEST-01 ]] || [[ "$GATE" == G-ARCH-* ]]; then
+       [[ "$GATE" == G-TEST-01 ]] || [[ "$GATE" == G-ARCH-* ]] || \
+       [[ "$GATE" == G-REVIEW-* ]]; then
         echo "[HOOK] $GATE: L3 gate (model judgment) — skipped in hook"
         continue
     fi

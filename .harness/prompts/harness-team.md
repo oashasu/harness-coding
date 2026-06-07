@@ -97,16 +97,30 @@ Agent: harness-governor + spec-architect
 人类介入: 是（人类审核 Spec 是否对齐原始需求）
 ```
 
-### Step 5: CODE_IMPL（代码实现）
+### Step 5: CODE_IMPL（代码实现 + 交叉验证审查）
 
 ```
-Agent: coding-worker
-输入: .harness/spec/task_brief.md + .harness/spec/spec.md
-输出:
-  - 代码文件（直接写入项目目录）
-  - .harness/results/R-001.json (实现结果)
-门禁: 无（实现中不阻塞）
-约束: TDD 模式、fresh context、按 task_brief 范围实现
+阶段 5a: 编码
+  Agent: coding-worker
+  输入: .harness/spec/task_brief.md + .harness/spec/spec.md
+  输出:
+    - 代码文件（直接写入项目目录）
+    - .harness/results/R-001.json (实现结果)
+  约束: TDD 模式、fresh context、按 task_brief 范围实现
+
+阶段 5b: 多模型交叉验证审查（非单一 agent）
+  机制: harness-governor 将同一份代码发给 N 个不同模型独立审查，上下文完全隔离
+  Prompt: code-reviewer-local.md + code-reviewer-global.md
+  每个模型独立输出 local review + global review
+  收集后由 harness-governor 执行共识比对:
+    - 共识项（≥2 模型一致）→ 直接采信
+    - 单模型独有发现 → 标记 suspicious，人工复核
+    - 矛盾项 → 升级为 CRITICAL
+  门禁:
+    - G-REVIEW-01: local review 共识无 CRITICAL
+    - G-REVIEW-02: global review 共识无 CRITICAL
+  打回: 共识 CRITICAL → 回到 coding-worker 返工
+  人类介入: 无（除非升级）
 ```
 
 ### Step 6: MACHINE_CHECK（机器检查）
