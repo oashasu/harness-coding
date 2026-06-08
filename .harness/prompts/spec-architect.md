@@ -153,7 +153,7 @@ methods:
 .harness/spec/interfaces/
 ```
 
-并由 pipeline.json 引用到对应步骤的 artifacts。
+并由 harness-state.json 引用到对应步骤的 artifacts。
 
 ## 补充说明
 

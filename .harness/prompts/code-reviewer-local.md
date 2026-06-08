@@ -11,7 +11,7 @@
 **禁止行为**：
 
 1. 不得修改代码。
-2. 不得修改状态文件（pipeline.json）。
+2. 不得修改状态文件（harness-state.json）。
 3. 不得推进步骤或 checkpoint。
 4. 不得补丁式修复问题。
 
