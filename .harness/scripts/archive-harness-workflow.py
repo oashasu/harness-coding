@@ -18,6 +18,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -283,9 +284,45 @@ def main() -> int:
         "reset_after_archive": bool(args.reset_after_archive),
         "dry_run": bool(args.dry_run),
     }
+
+    # Trigger knowledge curator after successful archive (non-blocking)
+    if not args.dry_run:
+        trigger_knowledge_curator(paths.skill_root.parent)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
+
+
+def trigger_knowledge_curator(workspace: Path) -> None:
+    """Trigger knowledge curator after successful archive. Never raises."""
+    import subprocess
+    import sys
+    
+    curator_script = workspace / ".harness" / "scripts" / "knowledge_curator.py"
+    if not curator_script.exists():
+        print(f"[Warning] knowledge_curator.py not found at {curator_script}, skipping curator")
+        return
+    
+    env = os.environ.copy()
+    env["HARNESS_WORKSPACE"] = str(workspace)
+    
+    try:
+        # gate-runner already appends directly to failure_memory.jsonl, so curate only.
+        curate_result = subprocess.run(
+            [sys.executable, str(curator_script), "curate"],
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=30
+        )
+        if curate_result.returncode != 0:
+            print(f"[Warning] knowledge_curator curate failed: {curate_result.stderr.strip()}")
+        else:
+            print(f"[Info] knowledge_curator completed: {curate_result.stdout.strip()}")
+    except subprocess.TimeoutExpired:
+        print("[Warning] knowledge_curator timed out after 30s")
+    except Exception as e:
+        print(f"[Warning] knowledge_curator unexpected error: {e}")
 
 if __name__ == "__main__":
     raise SystemExit(main())
