@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from task_identity import derive_task_id
-from state_integrity import verify_state_integrity
+from state_integrity import verify_state_integrity, resolve_state_file, legacy_view
 
 try:
     import jsonschema
@@ -16,8 +16,8 @@ except ImportError:  # pragma: no cover
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_STATE_FILE = PROJECT_ROOT / ".harness/state/harness-workflow-state.json"
-STATE_SCHEMA = PROJECT_ROOT / ".harness/skills/harness-workflow-skill/references/task/harness-workflow-state.schema.json"
+DEFAULT_STATE_FILE = resolve_state_file()
+STATE_SCHEMA = PROJECT_ROOT / ".harness/schemas/harness-state.schema.json"
 NEXT_ACTION_PLAN_SCHEMA = PROJECT_ROOT / ".harness/spec/schema/next-action-plan.v1.schema.json"
 STAGE_PHASES = {"prep", "spec", "prove", "final"}
 GEN_NODES = {"G01", "G02", "G03", "G04", "G05", "G06", "G07", "G08", "G09"}
@@ -91,7 +91,8 @@ def command(workspace_root: Path, script: str, args: list[str], output: str | No
 
 
 def validate_resume_context(state: dict[str, Any]) -> dict[str, Any]:
-    resume_context = state.get("resume_context")
+    view = legacy_view(state)
+    resume_context = view.resume_context
     if not isinstance(resume_context, dict):
         raise ValueError("Missing resume_context")
     for field in [
@@ -301,18 +302,20 @@ def plan_script_action(state: dict[str, Any], state_file: Path, workspace_root: 
             ],
         }
     if action == "wait_for_user_action":
+        checkpoints = view.checkpoints
+        allowed_actions = checkpoints.get("allowed_actions", []) if isinstance(checkpoints, dict) else []
         return {
             "plan_version": "1.0",
             "current_phase": current_phase,
-            "current_execution_unit": state["resume_context"]["current_execution_unit"],
+            "current_execution_unit": resume_ctx.get("current_execution_unit", ""),
             "next_required_action": action,
-            "required_script": state["resume_context"]["required_script"],
+            "required_script": resume_ctx.get("required_script", ""),
             "action_kind": "wait_for_user",
             "task_scope": "checkpoint",
             "phase": current_phase,
-            "execution_unit": state["resume_context"]["current_execution_unit"],
-            "pending_checkpoint": state["resume_context"]["pending_checkpoint"],
-            "allowed_actions": state.get("checkpoints", {}).get("allowed_actions", []),
+            "execution_unit": resume_ctx.get("current_execution_unit", ""),
+            "pending_checkpoint": resume_ctx.get("pending_checkpoint", ""),
+            "allowed_actions": allowed_actions,
             "commands": [
                 command(workspace_root, "phase-handoff.py", ["--state-file", str(state_file), "--user-action", "<action>", "--advance-state"]),
             ],
@@ -321,13 +324,13 @@ def plan_script_action(state: dict[str, Any], state_file: Path, workspace_root: 
         return {
             "plan_version": "1.0",
             "current_phase": current_phase,
-            "current_execution_unit": state["resume_context"]["current_execution_unit"],
+            "current_execution_unit": resume_ctx.get("current_execution_unit", ""),
             "next_required_action": action,
-            "required_script": state["resume_context"]["required_script"],
+            "required_script": resume_ctx.get("required_script", ""),
             "action_kind": "archive",
             "task_scope": "terminal",
             "phase": current_phase,
-            "execution_unit": state["resume_context"]["current_execution_unit"],
+            "execution_unit": resume_ctx.get("current_execution_unit", ""),
             "commands": [
                 command(workspace_root, "archive-harness-workflow.py", ["--state-file", str(state_file), "--archive-only"]),
             ],
@@ -337,6 +340,7 @@ def plan_script_action(state: dict[str, Any], state_file: Path, workspace_root: 
 
 def build_plan(state: dict[str, Any], state_file: Path) -> dict[str, Any]:
     """Build next action plan from resume_context and preflight results"""
+    view = legacy_view(state)
     resume_context = validate_resume_context(state)
     validate_action_binding(resume_context)
     workspace_root = detect_workspace_root(state_file)
@@ -352,8 +356,8 @@ def build_plan(state: dict[str, Any], state_file: Path) -> dict[str, Any]:
     # Determine action based on last_review_status
     last_review_status = resume_context.get("last_review_status", "pending")
     if last_review_status in {"rework_required", "rejected"}:
-        current_node = state.get("artifacts", {}).get("phase_3", {}).get("current_node")
-        if state.get("current_phase") == "gen" and current_node:
+        current_node = view.artifacts_phase_3.get("current_node")
+        if view.current_phase == "gen" and current_node:
             if not resume_context.get("next_required_action", "").endswith(f":{current_node}"):
                 raise ValueError(f"last_review_status={last_review_status} must plan rework for current node {current_node}")
     action = resume_context["next_required_action"]

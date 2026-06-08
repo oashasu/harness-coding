@@ -17,7 +17,16 @@ from pathlib import Path
 from typing import Any
 
 
-KNOWLEDGE_DIR = Path(__file__).resolve().parents[2] / ".harness" / "knowledge"
+
+def _get_knowledge_dir() -> Path:
+    """Resolve knowledge directory from HARNESS_WORKSPACE or fallback to repo root."""
+    workspace = os.getenv("HARNESS_WORKSPACE")
+    if workspace:
+        return Path(workspace) / ".harness" / "knowledge"
+    return Path(__file__).resolve().parents[2] / ".harness" / "knowledge"
+
+
+KNOWLEDGE_DIR = _get_knowledge_dir()
 WAL_DIR = KNOWLEDGE_DIR / "wal"
 FAILURE_MEMORY = KNOWLEDGE_DIR / "failure_memory.jsonl"
 EXPERIENCE_MD = KNOWLEDGE_DIR / "experience.md"

@@ -21,7 +21,7 @@ except ImportError:  # pragma: no cover
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-STATE_SCHEMA = PROJECT_ROOT / ".harness/skills/harness-workflow-skill/references/task/harness-workflow-state.schema.json"
+STATE_SCHEMA = PROJECT_ROOT / ".harness/schemas/harness-state.schema.json"
 MANIFEST_SCHEMA = PROJECT_ROOT / ".harness/spec/schema/task-manifest.v1.schema.json"
 VALIDATE_SCRIPT = PROJECT_ROOT / ".harness/scripts/validate-task-manifest.py"
 

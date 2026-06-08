@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any
 
 from final_report_contract import validate_final_report
-from state_integrity import verify_state_integrity
+from state_integrity import verify_state_integrity, legacy_view
 
 try:
     import jsonschema
@@ -36,13 +36,13 @@ except ImportError:  # pragma: no cover
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-STATE_SCHEMA = PROJECT_ROOT / ".harness/skills/harness-workflow/references/01-收单机构开发任务/工作流/harness-state.schema.json"
+STATE_SCHEMA = PROJECT_ROOT / ".harness/schemas/harness-state.schema.json"
 HARNESS_REQ_FACTS_SCHEMA = PROJECT_ROOT / ".harness/spec/schema/harness-req-facts.v1.schema.json"
 HARNESS_ISSUE_ROUTING_SCHEMA = PROJECT_ROOT / ".harness/spec/schema/harness-issue-routing.v1.schema.json"
-SKILL_MD = PROJECT_ROOT / ".harness/skills/harness-workflow/SKILL.md"
-STATE_CONTRACT = PROJECT_ROOT / ".harness/spec/harness-contracts.md"
-PHASE_DEP_RULE = PROJECT_ROOT / ".harness/skills/harness-workflow/references/09-执行治理与验收/阶段能力依赖清单.md"
-PREFLIGHT_RULE = PROJECT_ROOT / ".harness/skills/harness-workflow/references/09-执行治理与验收/preflight检查规则.md"
+SKILL_MD = PROJECT_ROOT / "skills/harness-router/SKILL.md"
+STATE_CONTRACT = PROJECT_ROOT / ".harness/prompts/harness-contracts.md"
+PHASE_DEP_RULE = PROJECT_ROOT / "docs/analysis-gates.md"
+PREFLIGHT_RULE = None  # Deprecated: rule file removed, checks degraded to built-in logic
 CAPABILITIES_CONFIG = PROJECT_ROOT / ".harness/config/capabilities.yaml"
 ALIASES_CONFIG = PROJECT_ROOT / ".harness/config/aliases.yaml"
 
@@ -395,8 +395,10 @@ def decide(summary: dict[str, int], strict: bool) -> tuple[bool, str]:
 
 def compute_allowed_actions(state: dict[str, Any], stage: str) -> list[str]:
     """P3新增：根据状态计算允许的动作列表"""
-    resume_context = state.get("resume_context", {})
-    checkpoints = state.get("checkpoints", {})
+    view = legacy_view(state)
+    resume_context = view.resume_context or {}
+    checkpoints_raw = view.checkpoints
+    checkpoints = checkpoints_raw if isinstance(checkpoints_raw, dict) else {}
     next_action = resume_context.get("next_required_action", "")
     pending_checkpoint = resume_context.get("pending_checkpoint", "NONE")
     last_review_status = resume_context.get("last_review_status", "pending")
@@ -410,7 +412,8 @@ def compute_allowed_actions(state: dict[str, Any], stage: str) -> list[str]:
 
     # last_review_status为rework_required/rejected时，只允许返工动作
     if last_review_status in RESUME_BLOCKING_REVIEW_STATUSES:
-        current_node = state.get("artifacts", {}).get("phase_3", {}).get("current_node")
+        artifacts = view.artifacts
+        current_node = artifacts.get("phase_3", {}).get("current_node") if isinstance(artifacts, dict) else None
         if stage == "gen" and current_node:
             return [f"dispatch_gen_node_worker:{current_node}", f"dispatch_gen_node_review:{current_node}"]
         return []  # 阻止推进
@@ -445,12 +448,13 @@ def validate_common_files(results: list[CheckResult]) -> None:
         (SKILL_MD, "skill_md_exists", "SKILL.md入口存在"),
         (STATE_CONTRACT, "state_contract_exists", "状态契约说明存在"),
         (PHASE_DEP_RULE, "phase_dependency_rule_exists", "阶段能力依赖清单存在"),
-        (PREFLIGHT_RULE, "preflight_rule_exists", "preflight检查规则存在"),
     ]:
         if path.exists():
             add_result(results, "skill_entry", item, "PASS", None, message)
         else:
             add_result(results, "skill_entry", item, "FAIL", "BLOCKER", f"缺少关键文件：{path}")
+    # PREFLIGHT_RULE 已移除，降级为 warning
+    add_result(results, "skill_entry", "preflight_rule_deprecated", "WARN", "WARNING", "preflight检查规则文件已废弃，检查规则降级为内置逻辑")
 
 
 def validate_runtime_state(stage: str, state_file: Path, results: list[CheckResult]) -> dict[str, Any] | None:
@@ -487,20 +491,26 @@ def validate_runtime_state(stage: str, state_file: Path, results: list[CheckResu
     except Exception as exc:
         add_result(results, "runtime_state", "state_schema_valid", "FAIL", "BLOCKER", f"状态文件不符合当前Schema: {exc}")
 
-    current_phase = data.get("current_phase")
-    phase_status = data.get("phase_status", {})
-    checkpoints = data.get("checkpoints", {})
-    resume_context = data.get("resume_context")
-    artifacts = data.get("artifacts", {})
-    if current_phase not in {*ALLOWED_STAGES, "DONE", "TERMINATED"}:
+    view = legacy_view(data)
+    current_phase = view.current_phase
+    phase_status_raw = view.phase_status
+    phase_status = phase_status_raw if isinstance(phase_status_raw, dict) else {}
+    checkpoints_raw = view.checkpoints
+    checkpoints = checkpoints_raw if isinstance(checkpoints_raw, dict) else {}
+    resume_context = view.resume_context
+    artifacts = view.artifacts
+    if current_phase is not None and current_phase not in {*ALLOWED_STAGES, "DONE", "TERMINATED"}:
         add_result(results, "runtime_state", "current_phase_valid", "FAIL", "BLOCKER", f"current_phase非法: {current_phase}")
     if stage in phase_status and phase_status.get(stage) not in {"pending", "in_progress", "completed", "blocked"}:
         add_result(results, "runtime_state", "phase_status_valid", "FAIL", "BLOCKER", f"phase_status.{stage}非法: {phase_status.get(stage)}")
     elif phase_status.get(stage) not in {"in_progress", "completed"}:
         add_result(results, "runtime_state", "phase_status_alignment", "WARN", "WARNING", f"当前检查阶段为{stage}，但phase_status.{stage}={phase_status.get(stage)}")
 
-    if checkpoints.get("last_checkpoint") not in ALLOWED_CHECKPOINTS:
-        add_result(results, "runtime_state", "last_checkpoint_valid", "FAIL", "BLOCKER", f"last_checkpoint非法: {checkpoints.get('last_checkpoint')}")
+    last_checkpoint_val = checkpoints.get("last_checkpoint")
+    if last_checkpoint_val is not None and last_checkpoint_val not in ALLOWED_CHECKPOINTS:
+        add_result(results, "runtime_state", "last_checkpoint_valid", "FAIL", "BLOCKER", f"last_checkpoint非法: {last_checkpoint_val}")
+    elif last_checkpoint_val is None:
+        add_result(results, "runtime_state", "last_checkpoint_valid", "WARN", "WARNING", "last_checkpoint未设置")
     state_contract_version = data.get("state_contract_version")
     if state_contract_version is None:
         add_result(results, "runtime_state", "state_contract_version_exists", "WARN", "WARNING", "state_contract_version缺失，当前按兼容模式继续")
@@ -667,6 +677,7 @@ def validate_json_artifacts(files: list[Path], schema_path: Path, results: list[
             payload = load_json(artifact)
             if schema_path == HARNESS_ISSUE_ROUTING_SCHEMA:
                 # prove_routing_compat removed in generalization — payload passed through as-is
+                pass
         except Exception as exc:
             add_result(results, "stage_input", f"{item_prefix}_json_parse", "FAIL", "BLOCKER", f"JSON不可解析: {artifact}: {exc}")
             continue
@@ -748,11 +759,14 @@ def validate_stage_inputs(
     if data is None:
         return
 
-    phase_status = data.get("phase_status", {})
-    checkpoints = data.get("checkpoints", {})
+    view = legacy_view(data) if data is not None else None
+    phase_status_raw = view.phase_status if view else {}
+    phase_status = phase_status_raw if isinstance(phase_status_raw, dict) else {}
+    checkpoints_raw = view.checkpoints if view else []
+    checkpoints = checkpoints_raw if isinstance(checkpoints_raw, dict) else {}
     gate_context = checkpoints.get("gate_context", {})
-    artifacts = data.get("artifacts", {})
-    questions = data.get("questions", {})
+    artifacts = view.artifacts if view else {}
+    questions = data.get("questions", {}) if data is not None else {}
     phase1_outputs = artifacts.get("phase_1", {}).get("outputs", [])
 
     def generated_file_path(raw_path: str) -> Path:

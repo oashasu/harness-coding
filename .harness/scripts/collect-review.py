@@ -17,7 +17,7 @@ except ImportError:  # pragma: no cover
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-STATE_SCHEMA = PROJECT_ROOT / ".harness/skills/harness-workflow-skill/references/task/harness-workflow-state.schema.json"
+STATE_SCHEMA = PROJECT_ROOT / ".harness/schemas/harness-state.schema.json"
 REVIEW_RESULT_SCHEMA = PROJECT_ROOT / ".harness/spec/schema/review-result.v1.schema.json"
 REVIEW_STATUSES = {"pending", "approved", "rework_required", "rejected"}
 GEN_NODE_IDS = {"G01", "G02", "G03", "G04", "G05", "G06", "G07", "G08", "G09"}

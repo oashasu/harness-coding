@@ -50,11 +50,40 @@ export function queryTable(db: Database.Database, tableName: string) {
 
 
 export function queryApiContract(db: Database.Database, serviceName: string) {
-  const rules = db.prepare(
-    "SELECT * FROM business_rules WHERE domain_id LIKE ? AND rule_type = 'api_contract'"
-  ).all(`%${serviceName}%`);
+  // 精确匹配优先
+  const exactRules = db.prepare(
+    "SELECT * FROM business_rules WHERE domain_id = ? AND rule_type = 'api_contract'"
+  ).all(serviceName) as any[];
 
-  return { api_contracts: rules };
+  if (exactRules.length > 0) {
+    return { api_contracts: exactRules, match_type: 'exact' };
+  }
+
+  // 前缀匹配 (如 serviceName = "order" 匹配 "order-service")
+  const prefixRules = db.prepare(
+    "SELECT * FROM business_rules WHERE domain_id LIKE ? AND rule_type = 'api_contract'"
+  ).all(`${serviceName}-%`) as any[];
+
+  if (prefixRules.length > 0) {
+    return { api_contracts: prefixRules, match_type: 'prefix' };
+  }
+
+  // 兜底：模糊匹配，但限定为包含 serviceName 且不含其他服务分隔符
+  // 避免如 "order" 误命中 "border-service"
+  const fuzzyRules = db.prepare(
+    "SELECT * FROM business_rules WHERE domain_id LIKE ? AND rule_type = 'api_contract'"
+  ).all(`%${serviceName}%`) as any[];
+
+  // 过滤：domain_id 必须以 serviceName 开头或包含 -serviceName- 或 -serviceName
+  const filtered = fuzzyRules.filter(r => {
+    const did = r.domain_id || '';
+    return did === serviceName
+      || did.startsWith(`${serviceName}-`)
+      || did.includes(`-${serviceName}-`)
+      || did.endsWith(`-${serviceName}`);
+  });
+
+  return { api_contracts: filtered, match_type: filtered.length > 0 ? 'fuzzy' : 'none' };
 }
 
 export function queryBusinessRule(db: Database.Database, domainId?: string, ruleType?: string) {

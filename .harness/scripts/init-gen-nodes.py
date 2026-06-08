@@ -13,12 +13,12 @@ try:
 except ImportError:  # pragma: no cover
     jsonschema = None
 
-from state_integrity import seal_state, verify_state_integrity
+from state_integrity import seal_state, verify_state_integrity, resolve_state_file, legacy_view
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_STATE_FILE = PROJECT_ROOT / ".harness/state/harness-workflow-state.json"
-STATE_SCHEMA = PROJECT_ROOT / ".harness/skills/harness-workflow-skill/references/task/harness-workflow-state.schema.json"
+DEFAULT_STATE_FILE = resolve_state_file()
+STATE_SCHEMA = PROJECT_ROOT / ".harness/schemas/harness-state.schema.json"
 NODE_NAMES = {
     "G01": "G01_NODE_1",
     "G02": "G02_NODE_2",
@@ -93,8 +93,9 @@ def build_nodes() -> dict[str, dict[str, Any]]:
 
 
 def initialize_gen_nodes(state: dict[str, Any], force: bool) -> dict[str, Any]:
-    if state.get("current_phase") != "gen":
-        raise ValueError(f"Current phase is not gen: {state.get('current_phase')}")
+    view = legacy_view(state)
+    if view.current_phase != "gen":
+        raise ValueError(f"Current phase is not gen: {view.current_phase}")
 
     migrated = json.loads(json.dumps(state))
     artifacts = migrated.setdefault("artifacts", {})

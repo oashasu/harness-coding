@@ -13,12 +13,12 @@ try:
 except ImportError:  # pragma: no cover
     jsonschema = None
 
-from state_integrity import seal_state, verify_state_integrity
+from state_integrity import seal_state, verify_state_integrity, resolve_state_file, legacy_view
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_STATE_FILE = PROJECT_ROOT / ".harness/state/harness-workflow-state.json"
-STATE_SCHEMA = PROJECT_ROOT / ".harness/skills/harness-workflow-skill/references/task/harness-workflow-state.schema.json"
+DEFAULT_STATE_FILE = resolve_state_file()
+STATE_SCHEMA = PROJECT_ROOT / ".harness/schemas/harness-state.schema.json"
 NODE_ORDER = ["G01", "G02", "G03", "G04", "G05", "G06", "G07", "G08", "G09"]
 NODE_PREREQS = {
     "G01": [],
@@ -107,23 +107,26 @@ def node_complete(node_id: str, nodes: dict[str, Any]) -> tuple[bool, str]:
 
 
 def validate_entry_gate(state: dict[str, Any]) -> None:
-    phase_status = state.get("phase_status", {})
-    artifacts = state.get("artifacts", {})
-    phase_2 = artifacts.get("phase_2", {})
-    phase_3 = artifacts.get("phase_3", {})
-    checkpoints = state.get("checkpoints", {})
-    resume_context = state.get("resume_context", {})
+    view = legacy_view(state)
+    phase_status_dict = state.get("phase_status", {})  # Keep raw for write compatibility
+    phase_2 = view.artifacts_phase_2
+    phase_3 = view.artifacts_phase_3
+    checkpoints = view.checkpoints
+    resume_context = view.resume_context or {}
 
-    if state.get("current_phase") != "gen":
-        raise ValueError(f"Current phase is not gen: {state.get('current_phase')}")
-    if phase_status.get("prove") != "completed":
-        raise ValueError("prove phase not completed, cannot advance gen nodes")
-    if phase_status.get("gen") != "in_progress":
-        raise ValueError(f"phase_status.gen must be in_progress: {phase_status.get('gen')}")
-    if checkpoints.get("awaiting_user_action") is True:
+    if view.current_phase != "gen":
+        raise ValueError(f"Current phase is not gen: {view.current_phase}")
+    prove_status = view.get_phase_status_for("prove")
+    if prove_status != "completed":
+        raise ValueError(f"prove phase not completed, cannot advance gen nodes: {prove_status}")
+    gen_status = view.get_phase_status_for("gen")
+    if gen_status != "in_progress":
+        raise ValueError(f"phase_status.gen must be in_progress: {gen_status}")
+    if isinstance(checkpoints, dict) and checkpoints.get("awaiting_user_action") is True:
         raise ValueError("awaiting_user_action=true, cannot advance gen nodes")
-    if checkpoints.get("last_checkpoint") not in {"prove-ok", "layer-ok"}:
-        raise ValueError(f"last_checkpoint must be prove-ok or layer-ok: {checkpoints.get('last_checkpoint')}")
+    last_checkpoint = checkpoints.get("last_checkpoint") if isinstance(checkpoints, dict) else None
+    if last_checkpoint not in {"prove-ok", "layer-ok"}:
+        raise ValueError(f"last_checkpoint must be prove-ok or layer-ok: {last_checkpoint}")
     if phase_2.get("allow_codegen") not in {"YES", "YES_WITH_WARNING"}:
         raise ValueError(f"allow_codegen did not permit code generation: {phase_2.get('allow_codegen')}")
     if resume_context.get("next_required_action") != "run_preflight:gen":
@@ -217,7 +220,7 @@ def rewrite_resume_for_gen_preflight(state: dict[str, Any]) -> None:
 def advance_gen_node(state: dict[str, Any]) -> dict[str, Any]:
     validate_entry_gate(state)
     updated = json.loads(json.dumps(state))
-    phase_3 = updated["artifacts"]["phase_3"]
+    phase_3 = updated.setdefault("artifacts", {}).setdefault("phase_3", {})
     nodes = phase_3.get("nodes", {})
     if not isinstance(nodes, dict):
         raise ValueError("phase_3.nodes missing or invalid")

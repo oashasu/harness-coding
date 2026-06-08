@@ -12,7 +12,7 @@ from typing import Any
 
 from final_report_contract import validate_final_report
 from prove_routing_compat import normalize_legacy_prove_routing_payload
-from state_integrity import seal_state, verify_state_integrity
+from state_integrity import seal_state, verify_state_integrity, resolve_state_file
 
 try:
     import jsonschema
@@ -21,7 +21,7 @@ except ImportError:  # pragma: no cover
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_STATE_FILE = PROJECT_ROOT / ".harness/state/harness-state.json"
+DEFAULT_STATE_FILE = resolve_state_file()
 DISPATCH_DIR = PROJECT_ROOT / ".harness/dispatch"
 SESSION_BRIEF_FILE = PROJECT_ROOT / ".harness/state/SESSION_BRIEF.md"
 PHASE_ORDER = ["prep", "spec", "prove", "gen", "final"]

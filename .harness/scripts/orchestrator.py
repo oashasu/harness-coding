@@ -39,12 +39,10 @@ class StageOrchestrator:
 
     # Schema 文件路径映射
     SCHEMA_PATHS = {
-        "spec": ".harness/schemas/harness-spec-state.v1.schema.json",
-        "prove": ".harness/schemas/harness-prove-state.v1.schema.json",
         "plan": ".harness/schemas/harness-plan-state.v1.schema.json",
     }
     HARNESS_WORKFLOW_SCHEMA = (
-        ".harness/schemas/harness-workflow-state.schema.json"
+        ".harness/schemas/harness-state.schema.json"
     )
     HARNESS_REQ_FACTS_SCHEMA = ".harness/schemas/harness-req-facts.v1.schema.json"
     HARNESS_ISSUE_ROUTING_SCHEMA = ".harness/schemas/harness-issue-routing.v1.schema.json"
@@ -290,6 +288,11 @@ class StageOrchestrator:
             schema_rel = self.SCHEMA_PATHS.get(self.stage)
 
         if not schema_rel:
+            # Legacy spec/prove 没有 schema 支持
+            if self.stage in {"spec", "prove"} and self.state_kind == "legacy":
+                print(f"[Blocker] Legacy {self.stage} 模式不再支持：缺少对应 schema 文件。")
+                print(f"[Info] 请使用 harness-workflow-state 主线（移除 --legacy-mode）。")
+                sys.exit(1)
             print(f"[Error] 未知阶段: {self.stage}")
             sys.exit(1)
 

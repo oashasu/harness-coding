@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from task_identity import derive_task_id
+from state_integrity import legacy_view
 
 try:
     import jsonschema
@@ -21,7 +22,7 @@ except ImportError:  # pragma: no cover
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-STATE_SCHEMA = PROJECT_ROOT / ".harness/skills/harness-workflow-skill/references/task/harness-workflow-state.schema.json"
+STATE_SCHEMA = PROJECT_ROOT / ".harness/schemas/harness-state.schema.json"
 MANIFEST_SCHEMA = PROJECT_ROOT / ".harness/spec/schema/task-manifest.v1.schema.json"
 VALIDATE_SCRIPT = PROJECT_ROOT / ".harness/scripts/validate-task-manifest.py"
 
@@ -68,18 +69,19 @@ def handoff_file_for_gen(workspace_root: Path) -> str:
 
 
 def build_gen_node_manifest(state: dict[str, Any], state_file: Path) -> dict[str, Any]:
-    if state.get("current_phase") != "gen":
-        raise ValueError(f"Current phase is not gen: {state.get('current_phase')}")
+    view = legacy_view(state)
+    if view.current_phase != "gen":
+        raise ValueError(f"Current phase is not gen: {view.current_phase}")
 
-    checkpoints = state.get("checkpoints", {})
-    if checkpoints.get("awaiting_user_action") is True:
+    checkpoints = view.checkpoints
+    if isinstance(checkpoints, dict) and checkpoints.get("awaiting_user_action") is True:
         raise ValueError("awaiting_user_action=true, cannot build gen node task now")
 
-    resume_context = state.get("resume_context")
+    resume_context = view.resume_context
     if not isinstance(resume_context, dict):
         raise ValueError("Missing resume_context")
 
-    phase_3 = state.get("artifacts", {}).get("phase_3", {})
+    phase_3 = view.artifacts_phase_3
     current_node = phase_3.get("current_node")
     nodes = phase_3.get("nodes", {})
     if not isinstance(current_node, str) or not current_node:

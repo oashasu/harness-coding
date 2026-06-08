@@ -33,20 +33,20 @@ async function main() {
   let domainsLoaded = 0;
   if (graphPath) {
     domainsLoaded = loadDomainGraph(db, graphPath);
-    console.log(`Loaded ${domainsLoaded} domains from ${graphPath}`);
+    console.error(`Loaded ${domainsLoaded} domains from ${graphPath}`);
   } else {
-    console.log('domain_graph.json not found, skipping');
+    console.error('domain_graph.json not found, skipping');
   }
 
   // Scan knowledge directory
   const knowledgeDir = path.join(rootDir, 'knowledge');
   const filesScanned = scanKnowledgeDir(db, knowledgeDir);
-  console.log(`Scanned ${filesScanned} files from knowledge/`);
+  console.error(`Scanned ${filesScanned} files from knowledge/`);
 
   // Scan memory directory
   const memoryDir = process.env.MEMORY_DIR || path.resolve(rootDir, '../.claude/projects/-Users-claw-sandbox/memory');
   const memoryScanned = scanMemoryDir(db, memoryDir);
-  console.log(`Scanned ${memoryScanned} files from memory/`);
+  console.error(`Scanned ${memoryScanned} files from memory/`);
 
   // Import SDD documents (scan all SDD directories)
   const tasksDir = path.resolve(rootDir, '../../tasks');
@@ -58,13 +58,13 @@ async function main() {
     for (const sddDir of sddDirs) {
       const count = importSddDocuments(db, sddDir);
       if (count > 0) {
-        console.log(`Imported ${count} rules from ${path.basename(sddDir)}`);
+        console.error(`Imported ${count} rules from ${path.basename(sddDir)}`);
         sddImported += count;
       }
     }
-    console.log(`Total imported ${sddImported} rules from SDD documents`);
+    console.error(`Total imported ${sddImported} rules from SDD documents`);
   } else {
-    console.log('Tasks directory not found, skipping SDD import');
+    console.error('Tasks directory not found, skipping SDD import');
   }
 
   // Print summary
@@ -75,7 +75,7 @@ async function main() {
     rules: (db.prepare('SELECT COUNT(*) as c FROM business_rules').get() as any).c,
     files: (db.prepare('SELECT COUNT(*) as c FROM knowledge_files').get() as any).c,
   };
-  console.log('\nDatabase summary:', JSON.stringify(counts, null, 2));
+  console.error('\nDatabase summary:', JSON.stringify(counts, null, 2));
 
   db.close();
 }

@@ -40,7 +40,7 @@ def detect_workspace_root(state_file: Path) -> Path:
 
 
 def detect_state_schema_path(workspace_root: Path) -> Path:
-    return workspace_root / ".harness/skills/harness-workflow-skill/references/task/harness-workflow-state.schema.json"
+    return workspace_root / ".harness/schemas/harness-state.schema.json"
 
 
 def validate_state_schema(state: dict[str, Any], schema_path: Path) -> str | None:

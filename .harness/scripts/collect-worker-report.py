@@ -17,7 +17,7 @@ from state_integrity import seal_state, verify_state_integrity
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-STATE_SCHEMA = PROJECT_ROOT / ".harness/skills/harness-workflow-skill/references/task/harness-workflow-state.schema.json"
+STATE_SCHEMA = PROJECT_ROOT / ".harness/schemas/harness-state.schema.json"
 WORKER_REPORT_SCHEMA = PROJECT_ROOT / ".harness/spec/schema/worker-final-report.v2.schema.json"
 WORKER_STATUSES = {"completed", "failed", "blocked"}
 

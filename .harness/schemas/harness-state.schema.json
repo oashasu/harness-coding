@@ -1,73 +1,132 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "harness-state.v1.schema.json",
+  "$id": "harness-state.v2.schema.json",
   "title": "HARNESS Pipeline State",
-  "description": "Root state file for HARNESS workflow pipeline (pipeline.json)",
+  "description": "Root state file for HARNESS workflow pipeline (v2 structure)",
   "type": "object",
-  "required": ["version", "task", "checkpoints", "artifacts", "resume_context"],
+  "required": ["version", "contract", "phase_truth", "node_truth", "recovery_truth", "route_decision", "quality_results", "history"],
   "properties": {
     "version": {
       "type": "string",
-      "const": "1.0"
+      "description": "Schema version identifier"
     },
-    "task": {
+    "contract": {
       "type": "object",
-      "required": ["task_id", "target_entity"],
+      "description": "Contract and constraint definitions",
+      "required": ["contract_hash", "prompt_version", "constraints", "allowed_write_paths", "blocked_paths", "acceptance_refs"],
       "properties": {
-        "task_id": {
-          "type": "string",
-          "description": "Unique task identifier"
+        "contract_hash": { "type": "string" },
+        "prompt_version": { "type": "string" },
+        "constraints": {
+          "type": "array",
+          "items": { "type": "string" }
         },
-        "target_entity": {
-          "type": "string",
-          "description": "Target entity or domain being worked on"
+        "allowed_write_paths": {
+          "type": "array",
+          "items": { "type": "string" }
         },
-        "description": {
-          "type": "string"
+        "blocked_paths": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "acceptance_refs": {
+          "type": "array",
+          "items": { "type": "string" }
         }
       }
     },
-    "current_step": {
-      "type": "string",
-      "enum": ["REQ_DRAFT", "REQ_REVIEW", "SPEC_DRAFT", "SPEC_REVIEW", "CODE_IMPL", "MACHINE_CHECK", "DUAL_REVIEW", "FINAL_ACCEPT", "KNOWLEDGE_ARCHIVE", "DONE", "TERMINATED"]
-    },
-    "checkpoints": {
+    "phase_truth": {
       "type": "object",
+      "description": "Phase execution truth",
+      "required": ["current_phase", "phase_status", "previous_phases"],
       "properties": {
-        "last_checkpoint": {
-          "type": "string",
-          "enum": ["NONE", "req-ok", "spec-ok", "code-ok", "review-ok", "final-ok", "archive-ok"]
-        },
-        "gate_context": {
+        "current_phase": { "type": ["string", "null"] },
+        "phase_status": { "type": "string" },
+        "previous_phases": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "node_truth": {
+      "type": "object",
+      "description": "Node/subtask truth",
+      "required": ["subtasks"],
+      "properties": {
+        "subtasks": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      }
+    },
+    "recovery_truth": {
+      "type": "object",
+      "description": "Recovery and resume truth",
+      "required": ["resume_context", "checkpoints"],
+      "properties": {
+        "resume_context": { "type": ["object", "null"] },
+        "checkpoints": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      }
+    },
+    "route_decision": {
+      "type": "object",
+      "description": "Routing decision and scoring",
+      "required": ["workflow", "confidence", "scores", "total_score", "reasoning", "overrides", "split_required", "subtasks"],
+      "properties": {
+        "workflow": { "type": ["string", "null"] },
+        "confidence": { "type": ["number", "null"] },
+        "scores": {
           "type": "object",
+          "required": ["loc_estimate", "file_count", "db_changes", "cross_module", "risk_level"],
           "properties": {
-            "req_validation_passed": { "type": "boolean" },
-            "spec_validation_passed": { "type": "boolean" },
-            "allow_codegen": {
-              "type": "string",
-              "enum": ["UNSET", "YES", "NO", "YES_WITH_CONDITIONS"]
-            }
+            "loc_estimate": { "type": "integer" },
+            "file_count": { "type": "integer" },
+            "db_changes": { "type": "integer" },
+            "cross_module": { "type": "integer" },
+            "risk_level": { "type": "integer" }
           }
+        },
+        "total_score": { "type": "integer" },
+        "reasoning": { "type": ["string", "null"] },
+        "overrides": {
+          "type": "object",
+          "required": ["force_super_dev", "force_light"],
+          "properties": {
+            "force_super_dev": { "type": "boolean" },
+            "force_light": { "type": "boolean" }
+          }
+        },
+        "split_required": { "type": "boolean" },
+        "subtasks": {
+          "type": "array",
+          "items": { "type": "object" }
         }
       }
     },
-    "artifacts": {
+    "quality_results": {
       "type": "object",
-      "description": "Phase-specific artifacts and outputs"
-    },
-    "resume_context": {
-      "type": "object",
+      "description": "Quality check results",
+      "required": ["last_run", "tier_results", "overall_passed"],
       "properties": {
-        "current_execution_unit": { "type": "string" },
-        "next_required_action": { "type": "string" },
-        "required_script": { "type": "string" },
-        "pending_checkpoint": { "type": "string" },
-        "last_review_status": { "type": "string" }
+        "last_run": { "type": ["string", "null"] },
+        "tier_results": {
+          "type": "object",
+          "additionalProperties": { "type": "object" }
+        },
+        "overall_passed": { "type": ["boolean", "null"] }
       }
+    },
+    "history": {
+      "type": "array",
+      "description": "Execution history log",
+      "items": { "type": "object" }
     },
     "integrity": {
       "type": "object",
-      "description": "HMAC-SHA256 integrity seal",
+      "description": "HMAC-SHA256 integrity seal (optional)",
       "properties": {
         "version": { "type": "string" },
         "algorithm": { "type": "string" },
