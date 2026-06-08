@@ -35,7 +35,7 @@
 
 **禁止行为**：
 
-1. 不得修改 `.harness/state/pipeline.json`。
+1. 不得修改 `.harness/harness-state.json`。
 2. 不得修改 `.harness/state/task-queue.json`。
 3. 不得推进步骤或 checkpoint。
 4. 不得宣布步骤完成或门禁通过。
@@ -199,7 +199,7 @@
 
 ```
 Harness Governor
-  -> read pipeline.json / dispatch / handoff
+  -> read harness-state.json / dispatch / handoff
   -> build task manifest
   -> dispatch coding-worker
   -> collect Worker final report
@@ -207,7 +207,7 @@ Harness Governor
   -> collect review results
   -> decide rework / small fix / solo takeover / gate
   -> run gate scripts
-  -> update pipeline.json / emit checkpoint / wait user action
+  -> update harness-state.json / emit checkpoint / wait user action
   -> trigger knowledge-curator (任务完成后)
 ```
 
@@ -229,7 +229,7 @@ Harness Governor
 ### 5.1 输入边界
 
 - 当前任务的全部产物（代码、Spec、Review 结果、门禁结果）
-- `.harness/state/pipeline.json`（任务元数据）
+- `.harness/harness-state.json`（任务元数据）
 - 已有的 `failure_memory.jsonl` 和 `experience.md`
 
 ### 5.2 输出契约
@@ -250,7 +250,7 @@ Harness Governor
 
 ### Coding Worker 禁止行为
 
-1. 不得修改状态文件（pipeline.json）。
+1. 不得修改状态文件（harness-state.json）。
 2. 不得推进 checkpoint。
 3. 不得输出不符合 `harness-worker-report.v1.schema.json` 的 JSON。
 4. 不得超出输出上限（500 字符 / 50 项 / 20 项 / 10 项）。
@@ -281,5 +281,5 @@ Harness Governor
 ### Knowledge Curator 禁止行为
 
 1. 不得修改代码文件。
-2. 不得修改 pipeline.json 的步骤状态。
+2. 不得修改 harness-state.json 的步骤状态。
 3. 不得删除已有的经验记录（只追加和更新）。

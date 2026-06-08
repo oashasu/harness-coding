@@ -13,7 +13,7 @@
 ┌─────────────────────────────────────────────────┐
 │                  HARNESS Layer                    │
 │  harness-team skill (入口) + 10 步流程状态机        │
-│  harness-governor (编排器) + pipeline.json (真相源)  │
+│  harness-governor (编排器) + harness-state.json (真相源)  │
 ├─────────────────────────────────────────────────┤
 │                  Agent Layer                      │
 │  7 个角色 Agent，各自职责边界清晰                    │
@@ -251,7 +251,8 @@ INIT → REQ_DRAFT → REQ_REVIEW → SPEC_DRAFT → SPEC_REVIEW
 ```
 .harness/
 ├── state/
-│   ├── pipeline.json              ← 真相源（扩展 state-contracts 的 DAG 状态）
+│   ├── harness-state.json         ← 真相源（v2 结构，主控制面）
+│   ├── pipeline.json              ← [历史] 已迁移至 harness-state.json
 │   └── task-queue.json            ← 任务队列
 ├── req/
 │   └── requirement.md             ← 需求文档（HARNESS 新增）
@@ -305,41 +306,55 @@ INIT → REQ_DRAFT → REQ_REVIEW → SPEC_DRAFT → SPEC_REVIEW
 
 ---
 
-## 六、pipeline.json（真相源）
+## 六、harness-state.json（真相源）
 
 ```json
 {
-  "pipeline_id": "PL-001",
-  "task_id": "T-001",
-  "req_id": "REQ-001",
-  "current_step": "CODE_IMPL",
-  "status": "in_progress",
-  "started_at": "2026-06-07T14:00:00Z",
-  "updated_at": "2026-06-07T15:30:00Z",
-  "steps": {
-    "REQ_DRAFT": {"status": "completed", "at": "..."},
-    "REQ_REVIEW": {"status": "completed", "at": "..."},
-    "SPEC_DRAFT": {"status": "completed", "at": "..."},
-    "SPEC_REVIEW": {"status": "completed", "at": "..."},
-    "CODE_IMPL": {"status": "in_progress", "at": "..."},
-    "MACHINE_CHECK": {"status": "pending"},
-    "DUAL_REVIEW": {"status": "pending"},
-    "FINAL_ACCEPT": {"status": "pending"},
-    "KNOWLEDGE_ARCHIVE": {"status": "pending"}
+  "version": "2.0.0",
+  "contract": {
+    "contract_hash": "",
+    "prompt_version": "2.0.0",
+    "constraints": [],
+    "allowed_write_paths": ["src/**", "scripts/**", "skills/**", ".harness/**", "docs/**", "*.md"],
+    "blocked_paths": [".env", "**/secrets/**", "**/*.key", "**/*.pem"],
+    "acceptance_refs": []
   },
-  "resume_context": {
-    "last_step": "CODE_IMPL",
-    "last_artifact": ".harness/results/R-001.json",
-    "failure_reason": null,
-    "allowed_action": "continue",
-    "lock": false,
-    "experience_refs": ["EXP-P001", "EXP-D001"]
+  "phase_truth": {
+    "current_phase": "CODE_IMPL",
+    "phase_status": "in_progress",
+    "previous_phases": ["REQ_DRAFT", "REQ_REVIEW", "SPEC_DRAFT", "SPEC_REVIEW"]
   },
-  "integrity": {
-    "hmac_sha256": "..."
-  }
+  "node_truth": {
+    "subtasks": []
+  },
+  "recovery_truth": {
+    "resume_context": {
+      "last_step": "CODE_IMPL",
+      "last_artifact": ".harness/results/R-001.json",
+      "allowed_action": "continue"
+    },
+    "checkpoints": []
+  },
+  "route_decision": {
+    "workflow": null,
+    "confidence": null,
+    "scores": {"loc_estimate": 0, "file_count": 0, "db_changes": 0, "cross_module": 0, "risk_level": 0},
+    "total_score": 0,
+    "reasoning": null,
+    "overrides": {"force_super_dev": false, "force_light": false},
+    "split_required": false,
+    "subtasks": []
+  },
+  "quality_results": {
+    "last_run": null,
+    "tier_results": {},
+    "overall_passed": null
+  },
+  "history": []
 }
 ```
+
+> 注：`pipeline.json` 为历史版本结构，现已迁移至 `harness-state.json`（v2 结构）。新实现应使用 `harness-state.json` 作为主控制面。
 
 ---
 

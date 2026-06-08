@@ -18,9 +18,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from state_integrity import load_state, save_state
 
 
-STATE_FILE = Path(__file__).resolve().parents[2] / ".harness" / "state" / "pipeline.json"
 DECISIONS_DIR = Path(__file__).resolve().parents[2] / ".harness" / "decisions"
 
 REWORK_PATHS = {
@@ -31,18 +31,6 @@ REWORK_PATHS = {
 }
 
 MAX_REWORKS = 2
-
-
-def load_state() -> dict[str, Any]:
-    if not STATE_FILE.exists():
-        return {}
-    return json.loads(STATE_FILE.read_text())
-
-
-def save_state(state: dict[str, Any]) -> None:
-    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    STATE_FILE.write_text(json.dumps(state, indent=2, ensure_ascii=False))
-
 
 def get_rework_count(step: str) -> int:
     DECISIONS_DIR.mkdir(parents=True, exist_ok=True)
@@ -91,13 +79,25 @@ def handle_rework(current_step: str, reason: str) -> dict[str, Any]:
         result["message"] = f"Max reworks ({MAX_REWORKS}) exceeded for {current_step}. Escalating to human."
 
     # Update state
-    state = load_state()
+    state, state_path = load_state(verify=False, allow_unsigned=True)
     if state:
-        state["current_step"] = target_step if rework_count <= MAX_REWORKS else current_step
-        state["resume_context"] = state.get("resume_context", {})
-        state["resume_context"]["last_rework"] = result
-        state["resume_context"]["rework_count"] = rework_count
-        save_state(state)
+        phase_truth = state.setdefault("phase_truth", {})
+        if isinstance(phase_truth, dict):
+            phase_truth["current_phase"] = (
+                target_step if rework_count <= MAX_REWORKS else current_step
+            )
+
+        recovery_truth = state.setdefault("recovery_truth", {})
+        if not isinstance(recovery_truth, dict):
+            recovery_truth = {}
+            state["recovery_truth"] = recovery_truth
+        resume_context = recovery_truth.setdefault("resume_context", {})
+        if not isinstance(resume_context, dict):
+            resume_context = {}
+            recovery_truth["resume_context"] = resume_context
+        resume_context["last_rework"] = result
+        resume_context["rework_count"] = rework_count
+        save_state(state, state_path, seal=True)
 
     return result
 

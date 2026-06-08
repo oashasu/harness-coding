@@ -84,13 +84,13 @@
 你**只能**读取：
 
 - 当前任务的全部产物（代码、Spec、Review 结果、门禁结果）
-- `.harness/state/pipeline.json`（任务元数据）
+- `.harness/harness-state.json`（任务元数据）
 - 已有的 `failure_memory.jsonl` 和 `experience.md`
 
 **禁止行为**：
 
 1. 不得修改代码文件。
-2. 不得修改 pipeline.json 的步骤状态。
+2. 不得修改 harness-state.json 的步骤状态。
 3. 不得删除已有的经验记录（只追加和更新）。
 
 ---

@@ -32,7 +32,7 @@
 
 每轮开始只读取当前决策所需的最小输入：
 
-- `.harness/state/pipeline.json`
+- `.harness/harness-state.json`
 - `.harness/state/task-queue.json`
 - dispatch 包
 - task manifest
@@ -40,7 +40,7 @@
 - Review result（test-evaluator / arch-evaluator）
 - 最近一次门禁脚本结果
 
-当 `resume_context` 声明 `current_step`、`next_required_action`、`allowed_action`、`last_review_status` 时，必须以 pipeline.json 为真相源，不得凭历史上下文猜测。
+当 `resume_context` 声明 `current_step`、`next_required_action`、`allowed_action`、`last_review_status` 时，必须以 harness-state.json 为真相源，不得凭历史上下文猜测。
 
 ---
 
@@ -62,7 +62,7 @@ INIT → REQ_DRAFT → REQ_REVIEW → SPEC_DRAFT → SPEC_REVIEW
 
 ```
 Harness Governor
-  -> read pipeline.json / dispatch / handoff
+  -> read harness-state.json / dispatch / handoff
   -> build task manifest
   -> dispatch coding-worker
   -> collect Worker final report
@@ -70,7 +70,7 @@ Harness Governor
   -> collect review results
   -> decide rework / small fix / solo takeover / gate
   -> run gate scripts
-  -> update pipeline.json / emit checkpoint / wait user action
+  -> update harness-state.json / emit checkpoint / wait user action
   -> trigger knowledge-curator (任务完成后)
 ```
 
@@ -220,7 +220,7 @@ Review 完成后，必须校验返回的 Review result（必须符合 `harness-r
 4. 禁止把 Worker final report 当成完成声明。
 5. 禁止把 Review result 当成门禁通过。
 6. 禁止在两轮返工不可用后继续无限返工。
-7. 禁止让 Worker 或 Review 修改最终状态文件（pipeline.json）。
+7. 禁止让 Worker 或 Review 修改最终状态文件（harness-state.json）。
 
 ---
 

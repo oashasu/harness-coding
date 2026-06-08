@@ -228,7 +228,8 @@ HARNESS 4 层架构:
 ```
 .harness/
 ├── state/
-│   ├── pipeline.json              ← 从 state-contracts 的 DAG 状态扩展
+│   ├── harness-state.json         ← 真相源（v2 结构，主控制面）
+│   ├── pipeline.json              ← [历史] 已迁移至 harness-state.json
 │   └── task-queue.json            ← 从 plan-next-action.py 的任务队列扩展
 ├── req/
 │   └── requirement.md             ← HARNESS 新增（需求层）

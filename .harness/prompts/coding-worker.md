@@ -37,7 +37,7 @@
 
 **禁止行为**：
 
-1. 不得修改 `.harness/state/pipeline.json`。
+1. 不得修改 `.harness/harness-state.json`。
 2. 不得修改 `.harness/state/task-queue.json`。
 3. 不得推进步骤或 checkpoint。
 4. 不得宣布步骤完成或门禁通过。

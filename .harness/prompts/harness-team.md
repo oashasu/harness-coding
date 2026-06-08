@@ -21,7 +21,7 @@ description: 启动 Harness Coding 团队模式，执行 10 步企业级编码�
 ## 启动流程
 
 1. 检查 `.harness/` 目录结构是否完整
-2. 读取 `.harness/state/pipeline.json` 确定当前步骤
+2. 读取 `.harness/harness-state.json` 确定当前步骤
 3. 如果是新任务：进入步骤 [1] REQ_DRAFT
 4. 如果是恢复任务：从断点继续
 
@@ -31,7 +31,7 @@ description: 启动 Harness Coding 团队模式，执行 10 步企业级编码�
 harness init
 ```
 
-创建 `.harness/` 目录结构 + 初始化 pipeline.json
+创建 `.harness/` 目录结构 + 初始化 harness-state.json
 
 ---
 
@@ -191,35 +191,51 @@ Agent: harness-governor
 
 ## 断点恢复机制
 
-### pipeline.json 格式
+### harness-state.json 格式（v2 结构）
 
 ```json
 {
-  "pipeline_id": "PL-001",
-  "task_id": "T-001",
-  "req_id": "REQ-001",
-  "current_step": "CODE_IMPL",
-  "status": "in_progress",
-  "started_at": "2026-06-07T14:00:00Z",
-  "updated_at": "2026-06-07T15:30:00Z",
-  "steps": {
-    "REQ_DRAFT": {"status": "completed", "at": "2026-06-07T14:05:00Z"},
-    "REQ_REVIEW": {"status": "completed", "at": "2026-06-07T14:10:00Z"},
-    "SPEC_DRAFT": {"status": "completed", "at": "2026-06-07T14:30:00Z"},
-    "SPEC_REVIEW": {"status": "completed", "at": "2026-06-07T14:35:00Z"},
-    "CODE_IMPL": {"status": "in_progress", "at": "2026-06-07T14:40:00Z"},
-    "MACHINE_CHECK": {"status": "pending"},
-    "DUAL_REVIEW": {"status": "pending"},
-    "FINAL_ACCEPT": {"status": "pending"},
-    "KNOWLEDGE_ARCHIVE": {"status": "pending"}
+  "version": "2.0.0",
+  "contract": {
+    "contract_hash": "",
+    "prompt_version": "2.0.0",
+    "constraints": [],
+    "allowed_write_paths": ["src/**", "scripts/**", "skills/**", ".harness/**", "docs/**", "*.md"],
+    "blocked_paths": [".env", "**/secrets/**", "**/*.key", "**/*.pem"],
+    "acceptance_refs": []
   },
-  "resume_context": {
-    "last_step": "CODE_IMPL",
-    "last_artifact": ".harness/results/R-001.json",
-    "failure_reason": null,
-    "allowed_action": "continue",
-    "lock": false
-  }
+  "phase_truth": {
+    "current_phase": "CODE_IMPL",
+    "phase_status": "in_progress",
+    "previous_phases": ["REQ_DRAFT", "REQ_REVIEW", "SPEC_DRAFT", "SPEC_REVIEW"]
+  },
+  "node_truth": {
+    "subtasks": []
+  },
+  "recovery_truth": {
+    "resume_context": {
+      "last_step": "CODE_IMPL",
+      "last_artifact": ".harness/results/R-001.json",
+      "allowed_action": "continue"
+    },
+    "checkpoints": []
+  },
+  "route_decision": {
+    "workflow": null,
+    "confidence": null,
+    "scores": {"loc_estimate": 0, "file_count": 0, "db_changes": 0, "cross_module": 0, "risk_level": 0},
+    "total_score": 0,
+    "reasoning": null,
+    "overrides": {"force_super_dev": false, "force_light": false},
+    "split_required": false,
+    "subtasks": []
+  },
+  "quality_results": {
+    "last_run": null,
+    "tier_results": {},
+    "overall_passed": null
+  },
+  "history": []
 }
 ```
 
@@ -228,7 +244,7 @@ Agent: harness-governor
 ```
 harness resume
     |
-    |-- 读取 pipeline.json
+    |-- 读取 harness-state.json
     |-- 确定 current_step
     |-- 检查 resume_context.lock
     |   |-- lock=true -> 等待人工解锁
@@ -302,5 +318,5 @@ harness init 时检查：
 .harness/config/
 
 # 必需文件
-.harness/state/pipeline.json (初始化为空 pipeline)
+.harness/harness-state.json (初始化为空 harness-state)
 ```
