@@ -1,4 +1,5 @@
 {
+  "_comment": "示例文件，不是活状态。运行 init-workspace.py 生成真实状态文件。",
   "version": "2.0.0",
   "contract": {
     "contract_hash": "",
@@ -7,13 +8,9 @@
     "allowed_write_paths": [
       "src/**",
       "scripts/**",
-      "skills/**",
       ".harness/**",
       "docs/**",
-      "*.md",
-      "pom.xml",
-      "build.gradle",
-      "package.json"
+      "*.md"
     ],
     "blocked_paths": [
       ".env",
@@ -59,5 +56,10 @@
     "tier_results": {},
     "overall_passed": null
   },
-  "history": []
+  "history": [],
+  "artifacts": {
+    "phase_2": {
+      "allow_codegen": "UNSET"
+    }
+  }
 }

@@ -1,0 +1,51 @@
+# ============================================================
+# HARNESS 运行态文件（不进入 Skill 分发包）
+# ============================================================
+
+# 活状态文件（由 init-workspace.py 生成）
+.harness/harness-state.json
+.harness/state/harness-state.json
+.harness/state/SESSION_BRIEF.md
+
+# 完整性密钥（每个工作区独立生成，严禁共享）
+.harness/state/*.key
+**/.harness-state.integrity.key
+
+# 运行时输出（preflight、orchestrator 写入）
+.harness/output/preflight-result.json
+.harness/output/**/*.json
+.harness/output/**/*.md
+
+# 知识 WAL（经验日志写入流水）
+.harness/knowledge/wal/*.jsonl
+.harness/knowledge/wal/*.json
+
+# 决策记录（rework-counts 等）
+.harness/decisions/*.json
+
+# 派发 / 评审 / 结果（任务执行产物）
+.harness/dispatch/*.json
+.harness/reviews/**/*.json
+.harness/results/*.json
+
+# 日志 / 追踪
+.harness/logs/*.log
+.harness/trace/
+
+# tasks 目录（任务单生成产物）
+.harness/tasks/*.json
+.harness/tasks/*.md
+
+# refs / spec / req 下的生成产物
+.harness/refs/*.json
+.harness/spec/**/*.json
+.harness/req/**/*.json
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# Node / knowledge-mcp 运行时
+tools/knowledge-mcp/node_modules/
+tools/knowledge-mcp/data/

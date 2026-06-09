@@ -7,6 +7,15 @@ set -euo pipefail
 ROOT_DIR="${1:-.}"
 cd "$ROOT_DIR"
 
+# 优先 .harness/state/harness-state.json，回退旧路径
+if [[ -f ".harness/state/harness-state.json" ]]; then
+    HARNESS_STATE_FILE=".harness/state/harness-state.json"
+elif [[ -f ".harness/harness-state.json" ]]; then
+    HARNESS_STATE_FILE=".harness/harness-state.json"
+else
+    HARNESS_STATE_FILE=".harness/state/harness-state.json"
+fi
+
 PASSED=true
 FINDINGS=()
 FINDING_COUNT=0
@@ -24,7 +33,7 @@ echo "=== Layer 1: Precheck ===" >&2
 
 # 1. 文件存在性检查
 echo "  [1/5] 文件存在性检查..." >&2
-if [[ -f ".harness/harness-state.json" ]]; then
+if [[ -f "$HARNESS_STATE_FILE" ]]; then
     echo "    ✓ harness-state.json 存在" >&2
 else
     add_finding "HIGH" "file-existence" "harness-state.json 不存在" ""
@@ -63,10 +72,10 @@ fi
 
 # 5. 上层 Tier 0-2 通过确认
 echo "  [5/5] 上层 Tier 状态确认..." >&2
-if [[ -f ".harness/harness-state.json" ]]; then
+if [[ -f "$HARNESS_STATE_FILE" ]]; then
     QUALITY_PASSED=$(python3 -c "
 import json
-with open('.harness/harness-state.json') as f:
+with open('$HARNESS_STATE_FILE') as f:
     state = json.load(f)
 print(str(state.get('quality_results', {}).get('overall_passed', 'null')).lower())
 " 2>/dev/null || echo "null")

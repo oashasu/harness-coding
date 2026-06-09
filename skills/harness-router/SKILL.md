@@ -70,7 +70,7 @@ total_score >= 16 → super-dev 模式（>8h 复杂任务）
 ### Step 6: 输出路由决策 + 初始化状态
 
 1. 输出路由决策 JSON（workflow、scores、reasoning、subtasks）
-2. 创建 `.harness/harness-state.json` 初始化状态
+2. 运行 `init-workspace.py` 初始化工作区（生成 `.harness/state/harness-state.json`）
 3. 创建 Spec 文档（使用 [references/spec-template.md](references/spec-template.md) 模板）
 4. 启动对应工作流（参考 [references/workflow-map.md](references/workflow-map.md)）
 

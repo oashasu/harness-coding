@@ -6,7 +6,14 @@ set -euo pipefail
 ROOT_DIR="${1:-.}"
 cd "$ROOT_DIR"
 
-STATE_FILE=".harness/harness-state.json"
+# 优先 .harness/state/harness-state.json，回退旧路径
+if [[ -f ".harness/state/harness-state.json" ]]; then
+    STATE_FILE=".harness/state/harness-state.json"
+elif [[ -f ".harness/harness-state.json" ]]; then
+    STATE_FILE=".harness/harness-state.json"
+else
+    STATE_FILE=".harness/state/harness-state.json"
+fi
 PASSED=true
 FINDINGS=()
 FINDING_COUNT=0

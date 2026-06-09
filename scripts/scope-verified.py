@@ -40,7 +40,10 @@ def check_scope(root_dir='.'):
         missing.append('spec_file_empty')
 
     # 2. allowed_write_paths 已声明
-    state_path = os.path.join(root_dir, '.harness/harness-state.json')
+    # 优先 .harness/state/harness-state.json，回退旧路径
+    _preferred = os.path.join(root_dir, '.harness/state/harness-state.json')
+    _legacy = os.path.join(root_dir, '.harness/harness-state.json')
+    state_path = _preferred if os.path.exists(_preferred) else _legacy
     if os.path.exists(state_path):
         try:
             with open(state_path) as f:
