@@ -3,7 +3,7 @@
 Archive and optionally reset .harness runtime state.
 
 Current version capabilities:
-1. Archive `state/harness-workflow-state.json`
+1. Archive the resolved main state file (state/harness-state.json; legacy names supported as fallback)
 2. Archive all runtime artifacts under `output/` except `.gitkeep`
 3. Optionally reset `state/` and `output/` after successful archiving
 
@@ -24,7 +24,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from state_integrity import verify_state_integrity
+from state_integrity import verify_state_integrity, resolve_state_file
 
 
 @dataclass
@@ -52,14 +52,18 @@ def workspace_root_for_state_file(state_file: Path) -> Path:
 def build_paths(state_file: Path | None = None) -> RuntimePaths:
     if state_file is not None:
         root = workspace_root_for_state_file(state_file) / ".harness"
+        # 显式指定时直接采用该文件，不再丢弃文件名硬编码旧名
+        resolved_state = resolve_state_file(state_file, harness_root=root)
     else:
         root = script_root()
+        # 未指定时由集中解析器决定（正式名优先，旧名兼容回退）
+        resolved_state = resolve_state_file(harness_root=root)
     return RuntimePaths(
         skill_root=root,
         state_dir=root / "state",
         output_dir=root / "output",
         archive_dir=root / "archive",
-        state_file=root / "state" / "harness-workflow-state.json",
+        state_file=resolved_state,
     )
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Build stage task manifest
-Generate stage task manifest from harness-workflow-state.json, output fields strictly aligned with task-manifest.v1.schema.json.
+Generate stage task manifest from harness-state.json, output fields strictly aligned with task-manifest.v1.schema.json.
 """
 from __future__ import annotations
 

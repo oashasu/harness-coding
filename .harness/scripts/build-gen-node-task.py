@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Build gen_node task manifest
-Generate gen node task manifest from harness-workflow-state.json, output fields strictly aligned with task-manifest.v1.schema.json.
+Generate gen node task manifest from harness-state.json, output fields strictly aligned with task-manifest.v1.schema.json.
 """
 from __future__ import annotations
 

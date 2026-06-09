@@ -32,16 +32,16 @@ def main() -> int:
         epilog="""
 Examples:
   # Verify state file signature
-  %(prog)s --state-file .harness/state/harness-workflow-state.json --verify-only
+  %(prog)s --state-file .harness/state/harness-state.json --verify-only
 
   # Show HMAC value
-  %(prog)s --state-file .harness/state/harness-workflow-state.json --show-hmac
+  %(prog)s --state-file .harness/state/harness-state.json --show-hmac
 
   # Re-sign and overwrite original file
-  %(prog)s --state-file .harness/state/harness-workflow-state.json
+  %(prog)s --state-file .harness/state/harness-state.json
 
   # Re-sign and output to new file
-  %(prog)s --state-file .harness/state/harness-workflow-state.json --output new-state.json
+  %(prog)s --state-file .harness/state/harness-state.json --output new-state.json
 """,
     )
     parser.add_argument(

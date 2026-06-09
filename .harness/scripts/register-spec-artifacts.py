@@ -14,11 +14,12 @@ try:
 except ImportError:  # pragma: no cover
     jsonschema = None
 
-from state_integrity import seal_state, verify_state_integrity
+from state_integrity import seal_state, verify_state_integrity, resolve_state_file
 
 
 SCRIPT_PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_STATE_FILE = SCRIPT_PROJECT_ROOT / ".harness/state/harness-workflow-state.json"
+# 主状态文件统一为 harness-state.json，旧名兼容由 resolve_state_file 集中处理
+DEFAULT_STATE_FILE = resolve_state_file(harness_root=SCRIPT_PROJECT_ROOT / ".harness")
 
 
 def load_json(path: Path) -> dict[str, Any]:

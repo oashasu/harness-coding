@@ -37,7 +37,7 @@ def setup_test_workspace():
         "current_phase": "done",
         "project": {"code": "test-project"}
     }
-    state_file = harness_dir / "state" / "harness-workflow-state.json"
+    state_file = harness_dir / "state" / "harness-state.json"
     state_file.write_text(json.dumps(state, indent=2))
     
     # Create dummy output file

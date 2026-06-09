@@ -170,7 +170,7 @@ harness init
 ```text
 <workspace>/.harness/
 ├── state/
-│   ├── harness-workflow-state.json
+│   ├── harness-state.json
 │   └── SESSION_BRIEF.md
 ├── output/
 │   └── .gitkeep
@@ -191,7 +191,7 @@ harness init
 
 推荐规则：
 
-1. 如果 `<workspace>/.harness/state/harness-workflow-state.json` 已存在，则默认失败退出
+1. 如果 `<workspace>/.harness/state/harness-state.json` 已存在，则默认失败退出
 2. 如果用户传 `--force`，只覆盖模板生成物，不清空 `archive/` 和 `knowledge/`
 3. 如果发现旧版本目录结构，输出迁移提示，而不是静默覆盖
 4. 初始化脚本必须是幂等的

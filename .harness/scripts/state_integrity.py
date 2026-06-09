@@ -19,6 +19,12 @@ INTEGRITY_KEY_FILENAME = ".harness-state.integrity.key"
 INTEGRITY_VERSION = "1.0"
 INTEGRITY_ALGORITHM = "HMAC-SHA256"
 
+# 唯一正式主状态文件名。所有脚本、文档、模板、示例都应统一指向它。
+CANONICAL_STATE_FILENAME = "harness-state.json"
+# 旧文件名，仅作兼容回退读取，不推荐继续生成或写入。
+# 新工作区由 init-workspace.py 生成 CANONICAL_STATE_FILENAME。
+LEGACY_STATE_FILENAMES = ("harness-workflow-state.json",)
+
 
 def workspace_root_for_state_file(state_file: Path) -> Path:
     resolved = state_file.expanduser().resolve()
@@ -120,40 +126,54 @@ def resolve_state_file(
     state_file: Path | None = None,
     *,
     prefer_state_dir: bool = True,
+    harness_root: Path | None = None,
 ) -> Path:
     """
     解析状态文件路径，按优先级返回实际路径。
-    
-    优先级（prefer_state_dir=True，默认）：
-    1. 显式 state_file 参数
-    2. .harness/state/harness-state.json
-    3. .harness/harness-state.json
-    
-    优先级（prefer_state_dir=False）：
-    1. 显式 state_file 参数
-    2. .harness/harness-state.json
-    
-    注意：不再默认鼓励 pipeline.json / harness-workflow-state.json。
+
+    这是状态文件路径解析的【唯一集中点】。所有兼容逻辑（旧文件名、旧位置）
+    都收敛在这里，其它脚本不得各自硬编码 harness-workflow-state.json 等旧名。
+
+    主状态文件：CANONICAL_STATE_FILENAME（harness-state.json）。
+
+    解析优先级（prefer_state_dir=True，默认）：
+    1. 显式 state_file 参数（最高，调用方明确指定时直接采用）
+    2. .harness/state/harness-state.json        ← 正式主路径
+    3. .harness/state/harness-workflow-state.json ← 旧文件名兼容回退
+    4. .harness/harness-state.json              ← 旧根目录位置兼容回退
+    5. .harness/harness-workflow-state.json     ← 旧根目录 + 旧文件名兼容回退
+    若以上都不存在，返回正式主路径（即使文件尚不存在，由调用方决定是否创建）。
+
+    优先级（prefer_state_dir=False）：跳过 state/ 子目录，仅在 .harness/ 根下解析。
+
+    Args:
+        state_file: 显式状态文件路径，给定时直接返回
+        prefer_state_dir: 是否优先 .harness/state/ 子目录
+        harness_root: 显式 .harness 根目录；None 时基于当前工作目录（Path.cwd()/.harness）
     """
     if state_file is not None:
         return state_file
-    
-    workspace_root = Path.cwd()
-    harness_root = workspace_root / ".harness"
-    
+
+    if harness_root is None:
+        harness_root = Path.cwd() / ".harness"
+    state_dir = harness_root / "state"
+
+    # 按优先级构建候选路径：正式名优先，旧名仅兼容回退
+    candidates: list[Path] = []
     if prefer_state_dir:
-        state_dir_file = harness_root / "state" / "harness-state.json"
-        if state_dir_file.exists():
-            return state_dir_file
-    
-    legacy_file = harness_root / "harness-state.json"
-    if legacy_file.exists():
-        return legacy_file
-    
-    # 默认返回 state_dir 路径（即使不存在，让调用方决定是否创建）
+        candidates.append(state_dir / CANONICAL_STATE_FILENAME)
+        candidates.extend(state_dir / legacy for legacy in LEGACY_STATE_FILENAMES)
+    candidates.append(harness_root / CANONICAL_STATE_FILENAME)
+    candidates.extend(harness_root / legacy for legacy in LEGACY_STATE_FILENAMES)
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    # 默认返回正式主路径（即使不存在）
     if prefer_state_dir:
-        return harness_root / "state" / "harness-state.json"
-    return legacy_file
+        return state_dir / CANONICAL_STATE_FILENAME
+    return harness_root / CANONICAL_STATE_FILENAME
 
 
 def load_state(
