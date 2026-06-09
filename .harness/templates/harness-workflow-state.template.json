@@ -1,0 +1,59 @@
+{
+  "version": "2.0.0",
+  "contract": {
+    "contract_hash": "",
+    "prompt_version": "2.0.0",
+    "constraints": [],
+    "allowed_write_paths": [
+      "src/**",
+      "scripts/**",
+      ".harness/**",
+      "docs/**",
+      "*.md"
+    ],
+    "blocked_paths": [
+      ".env",
+      "**/secrets/**",
+      "**/*.key",
+      "**/*.pem"
+    ],
+    "acceptance_refs": []
+  },
+  "phase_truth": {
+    "current_phase": null,
+    "phase_status": "idle",
+    "previous_phases": []
+  },
+  "node_truth": {
+    "subtasks": []
+  },
+  "recovery_truth": {
+    "resume_context": null,
+    "checkpoints": []
+  },
+  "route_decision": {
+    "workflow": null,
+    "confidence": null,
+    "scores": {
+      "loc_estimate": 0,
+      "file_count": 0,
+      "db_changes": 0,
+      "cross_module": 0,
+      "risk_level": 0
+    },
+    "total_score": 0,
+    "reasoning": null,
+    "overrides": {
+      "force_super_dev": false,
+      "force_light": false
+    },
+    "split_required": false,
+    "subtasks": []
+  },
+  "quality_results": {
+    "last_run": null,
+    "tier_results": {},
+    "overall_passed": null
+  },
+  "history": []
+}

@@ -149,3 +149,4 @@ Six improvements integrated from Harness research evaluation:
 - [Goal Prompts](../../task_archive/2026-06/harness-coding-system/goal-prompts.md)
 - [Enhance V1 Design](docs/superpowers/specs/2026-06-07-harness-enhance-v1-design.md)
 - [Enhance V1 Plan](docs/superpowers/plans/2026-06-07-harness-enhance-v1.md)
+- [Skill Market Packaging](docs/harness-skill-market-packaging.md)
