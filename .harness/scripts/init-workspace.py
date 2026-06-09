@@ -139,9 +139,9 @@ def main() -> int:
     print()
     print("下一步：")
     print(f"  1. 编辑 {harness_dir}/state/harness-state.json，填写 contract_hash 和 prompt_version")
-    print(f"  2. 运行 preflight 前置检查：")
+    print(f"  2. 运行 preflight 前置检查（使用首个工作流阶段）：")
     print(f"       python3 {SKILL_ROOT}/scripts/preflight.py \\")
-    print(f"         --stage prep \\")
+    print(f"         --stage REQ_DRAFT \\")
     print(f"         --state-file {harness_dir}/state/harness-state.json")
     print(f"  3. 查阅 {SKILL_ROOT.parent}/docs/harness-skill-market-packaging.md 了解运行态分层规则")
     return 0

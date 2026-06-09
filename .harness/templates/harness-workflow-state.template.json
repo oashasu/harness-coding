@@ -55,5 +55,10 @@
     "tier_results": {},
     "overall_passed": null
   },
-  "history": []
+  "history": [],
+  "artifacts": {
+    "phase_2": {
+      "allow_codegen": "UNSET"
+    }
+  }
 }
