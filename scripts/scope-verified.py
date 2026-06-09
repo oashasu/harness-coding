@@ -60,7 +60,7 @@ def check_scope(root_dir='.'):
     ref_files = [
         'skills/harness-router/SKILL.md',
         'skills/harness-quality/SKILL.md',
-        'scripts/common/finding-schema.json'
+        'skills/harness-quality/scripts/common/finding-schema.json'
     ]
     refs_ok = all(os.path.exists(os.path.join(root_dir, f)) for f in ref_files)
     results['references_complete'] = refs_ok

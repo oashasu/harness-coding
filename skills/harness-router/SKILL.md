@@ -2,7 +2,6 @@
 name: harness-router
 description: Harness Coding 统一路由入口 — 五维评分路由 + 大任务自动拆分
 version: 2.0.0
-trigger: /harness <需求描述>
 ---
 
 # Harness Router
@@ -11,12 +10,16 @@ trigger: /harness <需求描述>
 
 ## 触发方式
 
+slash 命令名由 frontmatter `name` 决定，本 skill 的实际调用为 `/harness-router`：
+
 ```
-/harness <需求描述>
-/harness:light <需求描述>      # 强制 light 模式
-/harness:riper-one <需求描述>  # 强制 riper-one 模式
-/harness:super-dev <需求描述>  # 强制 super-dev 模式
+/harness-router <需求描述>
 ```
+
+子模式（light / riper-one / super-dev）由五维评分自动路由，也可在需求描述中显式声明（如"强制 light 模式"）。
+
+> 说明：`/harness:light` 这类「冒号子命令」属于插件命名空间语法（`插件名:skill名`），
+> 需先把本 skill 打包为插件、并将各子模式拆成独立 skill 才能生效；当前单 skill 布局下不可用。
 
 ## 执行流程
 

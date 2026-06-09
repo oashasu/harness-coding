@@ -1,3 +1,9 @@
+---
+name: knowledge-agent
+description: 知识库查询代理 — 检索规范、编码约定与业务规则，为编码任务提供上下文
+version: 2.0.0
+---
+
 # Knowledge Agent
 
 > Harness Coding v2.0.0 — 知识库查询与规范提取代理

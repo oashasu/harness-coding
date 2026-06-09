@@ -105,5 +105,5 @@
 |----------|----------|
 | "接口返回 200" | `curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/xxx` |
 | "金额精度正确" | `grep -q "BigDecimal" Service.java` |
-| "无 SQL 注入" | `python scripts/tier1/check-sql-injection.py` |
-| "写入范围合规" | `bash scripts/tier0/check-write-paths.sh` |
+| "无 SQL 注入" | `python skills/harness-quality/scripts/tier1/check-sql-injection.py` |
+| "写入范围合规" | `bash skills/harness-quality/scripts/tier0/check-write-paths.sh` |

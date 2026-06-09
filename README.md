@@ -55,33 +55,37 @@ harness-coding/
 │   │       ├── routing-matrix.md
 │   │       ├── workflow-map.md
 │   │       └── spec-template.md
-│   └── harness-quality/         # 5-Tier quality pipeline
+│   └── harness-quality/         # 5-Tier quality pipeline (self-contained)
 │       ├── SKILL.md
-│       └── references/
-│           ├── quality-tiers.md
-│           ├── rejection-rules.md
-│           └── threshold-config.md
-├── scripts/
-│   ├── tier0/                   # Hard gates (blocking)
-│   │   ├── check-compile.sh
-│   │   ├── check-lint.sh
-│   │   ├── check-write-paths.sh
-│   │   └── check-format.sh
-│   ├── tier1/                   # Rule scripts (blocking)
-│   │   ├── check-sql-injection.py
-│   │   ├── check-bigdecimal.py
-│   │   ├── check-layer-violation.py
-│   │   ├── check-hardcoded.py
-│   │   └── check-null-safety.py
-│   ├── tier2/                   # Metric scripts (blocking)
-│   │   ├── check-coverage.py
-│   │   ├── check-assertion-density.py
-│   │   ├── check-complexity.py
-│   │   ├── check-file-size.py
-│   │   └── check-duplication.py
-│   └── common/                  # Shared utilities
-│       ├── finding-schema.json
-│       └── report-merger.py
+│       ├── references/
+│       │   ├── quality-tiers.md
+│       │   ├── rejection-rules.md
+│       │   └── threshold-config.md
+│       └── scripts/             # 质量脚本随 skill 自包含
+│           ├── tier0/           # Hard gates (blocking)
+│           │   ├── check-compile.sh
+│           │   ├── check-lint.sh
+│           │   ├── check-write-paths.sh
+│           │   └── check-format.sh
+│           ├── tier1/           # Rule scripts (blocking)
+│           │   ├── check-sql-injection.py
+│           │   ├── check-bigdecimal.py
+│           │   ├── check-layer-violation.py
+│           │   ├── check-hardcoded.py
+│           │   └── check-null-safety.py
+│           ├── tier2/           # Metric scripts (blocking)
+│           │   ├── check-coverage.py
+│           │   ├── check-assertion-density.py
+│           │   ├── check-complexity.py
+│           │   ├── check-file-size.py
+│           │   └── check-duplication.py
+│           └── common/          # Shared utilities
+│               ├── finding-schema.json
+│               └── report-merger.py
+├── scripts/                     # 开发工具（bootstrap / precheck / release-check）
+│   ├── bootstrap.sh
+│   ├── precheck.sh
+│   └── release-check.sh
 └── .harness/
     ├── harness-state.json       # Runtime state
     └── quality-config.json      # Threshold configuration
@@ -116,13 +120,13 @@ Agent suggestions for improvement.
 
 ```bash
 # Run a specific tier check
-python3 scripts/tier1/check-sql-injection.py /path/to/project
+python3 skills/harness-quality/scripts/tier1/check-sql-injection.py /path/to/project
 
 # Run tier 0 gate
-bash scripts/tier0/check-compile.sh /path/to/project
+bash skills/harness-quality/scripts/tier0/check-compile.sh /path/to/project
 
 # Merge reports
-echo '{"tier":1,"check":"sql","passed":true,"findings":[]}' | python3 scripts/common/report-merger.py
+echo '{"tier":1,"check":"sql","passed":true,"findings":[]}' | python3 skills/harness-quality/scripts/common/report-merger.py
 ```
 
 ## Enhancements (v2.1 — harness-enhance-v1)

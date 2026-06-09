@@ -1,8 +1,7 @@
 ---
 name: harness-quality
-description: Harness Coding 质量管道 — 5-Tier 分层质量检查（脚本 T0-2 + Agent T3-4）
+description: Harness Coding 质量管道 — 5-Tier 分层质量检查（脚本 T0-2 + Agent T3-4），由 harness-router 或工作流自动触发
 version: 2.0.0
-trigger: 自动触发（由 harness-router 或工作流调用）
 ---
 
 # Harness Quality

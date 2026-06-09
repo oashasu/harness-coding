@@ -1,3 +1,9 @@
+---
+name: pattern-extractor
+description: 模式提取器 — 从完成任务中提炼可复用的四层文档模式
+version: 2.0.0
+---
+
 # Pattern Extractor Agent
 
 > Harness Coding v2.0.0 — 模式提取器，对齐四层文档体系

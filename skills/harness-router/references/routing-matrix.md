@@ -71,9 +71,9 @@
 
 | 场景 | 强制路由 | 原因 |
 |------|----------|------|
-| 用户显式指定 `/harness:light` | light | 用户意愿优先 |
-| 用户显式指定 `/harness:riper-one` | riper-one | 用户意愿优先 |
-| 用户显式指定 `/harness:super-dev` | super-dev | 用户意愿优先 |
+| 用户显式声明「强制 light 模式」 | light | 用户意愿优先 |
+| 用户显式声明「强制 riper-one 模式」 | riper-one | 用户意愿优先 |
+| 用户显式声明「强制 super-dev 模式」 | super-dev | 用户意愿优先 |
 | 涉及认证核心代码 | super-dev | 高风险必须重型治理 |
 | 涉及支付核心代码 | super-dev | 高风险必须重型治理 |
 | 纯 typo 修正 | light (zero) | 机械性改动无需流程 |

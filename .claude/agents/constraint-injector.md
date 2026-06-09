@@ -1,3 +1,9 @@
+---
+name: constraint-injector
+description: 约束注入器 — 任务启动时自动检索并注入四层约束（contract/playbook/policy/template）到 Spec
+version: 2.0.0
+---
+
 # Constraint Injector Agent
 
 > Harness Coding v2.0.0 — 约束注入器，自动注入四层约束到新任务

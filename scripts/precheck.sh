@@ -41,8 +41,8 @@ fi
 
 # 2. 格式规范检查（调用 Tier 0）
 echo "  [2/5] 格式规范检查..." >&2
-if [[ -f "scripts/tier0/check-format.sh" ]]; then
-    if bash scripts/tier0/check-format.sh "$ROOT_DIR" > /tmp/fmt_result.json 2>/dev/null; then
+if [[ -f "skills/harness-quality/scripts/tier0/check-format.sh" ]]; then
+    if bash skills/harness-quality/scripts/tier0/check-format.sh "$ROOT_DIR" > /tmp/fmt_result.json 2>/dev/null; then
         echo "    ✓ 格式检查通过" >&2
     else
         add_finding "HIGH" "format" "Tier 0 格式检查未通过" ""
@@ -62,8 +62,8 @@ done
 
 # 4. write_paths 范围校验
 echo "  [4/5] write_paths 范围校验..." >&2
-if [[ -f "scripts/tier0/check-write-paths.sh" ]]; then
-    if bash scripts/tier0/check-write-paths.sh "$ROOT_DIR" > /tmp/wp_result.json 2>/dev/null; then
+if [[ -f "skills/harness-quality/scripts/tier0/check-write-paths.sh" ]]; then
+    if bash skills/harness-quality/scripts/tier0/check-write-paths.sh "$ROOT_DIR" > /tmp/wp_result.json 2>/dev/null; then
         echo "    ✓ 写入范围检查通过" >&2
     else
         add_finding "HIGH" "write-paths" "Tier 0 写入范围检查未通过" ""
