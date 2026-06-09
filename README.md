@@ -2,6 +2,25 @@
 
 Enterprise AI coding orchestration system — scripts for deterministic checks, agents for semantic judgment.
 
+## Quick Start
+
+```bash
+# 1. 安装依赖（Python 3.9+）
+pip install -r requirements.txt
+#   或一键引导：./scripts/bootstrap.sh
+
+# 2. 在你的项目目录下初始化工作区
+python3 <skill_root>/.harness/scripts/init-workspace.py --workspace .
+
+# 3. 跑通第一个验证命令（期望 BLOCKER: 0项）
+python3 <skill_root>/.harness/scripts/preflight.py \
+  --stage REQ_DRAFT \
+  --state-file .harness/state/harness-state.json
+```
+
+`<skill_root>` 为本仓库路径。完整说明见 [docs/install.md](docs/install.md)，
+第一个任务的完整链路见 [docs/quickstart.md](docs/quickstart.md)。
+
 ## Architecture
 
 ```

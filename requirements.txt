@@ -1,0 +1,6 @@
+# Harness Coding — Python 运行依赖
+# 安装：pip install -r requirements.txt
+# 详见 docs/install.md
+
+jsonschema>=4.0   # 状态文件 / task-manifest Schema 校验（orchestrator、preflight 等）
+pyyaml>=6.0       # DAG 蓝图配置解析（dag_blueprint.py、preflight.py）
