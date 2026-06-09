@@ -31,7 +31,7 @@ TEMPLATES_DIR = SKILL_ROOT / "templates"
 
 # (模板文件名, 目标路径相对于 .harness/)
 TEMPLATE_FILES: list[tuple[str, str]] = [
-    ("harness-workflow-state.template.json", "state/harness-state.json"),
+    ("harness-state.template.json", "state/harness-state.json"),
     ("SESSION_BRIEF.template.md", "state/SESSION_BRIEF.md"),
     ("experience.template.md", "knowledge/experience.md"),
     ("preflight-result.template.json", "output/preflight-result.json"),

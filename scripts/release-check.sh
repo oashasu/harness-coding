@@ -57,7 +57,7 @@ fi
 
 # init-workspace.py 依赖的模板源文件必须齐全
 MISSING_TPL=""
-for tpl in harness-workflow-state.template.json SESSION_BRIEF.template.md \
+for tpl in harness-state.template.json SESSION_BRIEF.template.md \
            experience.template.md preflight-result.template.json; do
   [ -f ".harness/templates/$tpl" ] || MISSING_TPL="$MISSING_TPL $tpl"
 done

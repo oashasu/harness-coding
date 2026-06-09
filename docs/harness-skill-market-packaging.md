@@ -265,7 +265,7 @@ harness-team-skill/
 
 ```text
 .harness/templates/
-├── harness-workflow-state.template.json
+├── harness-state.template.json
 ├── SESSION_BRIEF.template.md
 ├── experience.template.md
 └── preflight-result.template.json
