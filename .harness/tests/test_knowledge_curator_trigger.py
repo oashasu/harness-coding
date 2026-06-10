@@ -93,8 +93,7 @@ def test_curator_updates_experience():
         assert "Test failure message" in content, "Failure entry not in experience.md"
         
         print("✓ Test 1 PASSED: Archive triggers curator and updates experience.md")
-        return True
-        
+
     finally:
         shutil.rmtree(test_dir, ignore_errors=True)
 
@@ -123,8 +122,7 @@ def test_curator_failure_doesnt_block():
             f"Should have warning about curator failure\nstdout: {result.stdout}\nstderr: {result.stderr}"
         
         print("✓ Test 2 PASSED: Curator failure doesn't block archive")
-        return True
-        
+
     finally:
         shutil.rmtree(test_dir, ignore_errors=True)
 
@@ -158,8 +156,7 @@ def test_curator_with_empty_failure_memory():
         assert experience_md.exists(), f"experience.md should be created even with empty failure_memory\nstdout: {result.stdout}"
         
         print("✓ Test 3 PASSED: Curator handles empty failure_memory")
-        return True
-        
+
     finally:
         shutil.rmtree(test_dir, ignore_errors=True)
 
